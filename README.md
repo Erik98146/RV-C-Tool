@@ -8,7 +8,7 @@ https://copperhilltech.com/esp32-wifi-bluetooth-classic-ble-can-bus-module/
 - Powered by RV-C Bus, 12v, or USB-C
 - Decodes the complete specification of RV-C messages
 - Decodes individual RV-C messages
-- Displays raw data in the same byte format as used in the official RV-C specification
+- Displays raw data in the same byte format as used in the official [RV-C specification](https://www.rvia.org/media/8401)
 - Sorts and filters messages
 - Discovers and lists RV-C devices on the bus
 - Highlights DGN's with changed/updated data
