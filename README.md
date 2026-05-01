@@ -20,7 +20,9 @@ https://copperhilltech.com/esp32-wifi-bluetooth-classic-ble-can-bus-module/
 This was developed for the ESP-IDF and can be compiled with the ESP-IDF tools or from within VS Code (after ESP-IDF has been properly installed).  **Be sure to setup the ESP-IDF (and/or the tool from within VS Code) for websocket server support before compiling.**
 
 ## Use
-On first use, connect to the *sniffer* access point. h
+On first use, connect to the *sniffer* access point.
+
+## Screen Shots
 
 ![Web Dashboard 1](https://github.com/Erik98146/RV-C-Tool/blob/main/images/snap1.jpg?raw=true)   
 
