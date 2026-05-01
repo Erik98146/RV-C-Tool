@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RV-C Tool</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 18px; background: #111; color: #eee; --sticky-top: 0px; }
+    h1 { margin: 0 0 4px; font-size: 1.8rem; display: inline-flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+    .titleUrl { color: #aaa; font-size: 0.85rem; font-weight: 400; text-decoration: none; }
+    .titleUrl:hover { color: #ddd; text-decoration: underline; }
+    .top { display: flex; flex-direction: column; gap: 12px; align-items: stretch; margin-bottom: 8px; background: #111; padding: 0; }
+    .headerLeft { min-width: 260px; }
+    .stickyControls { position: sticky; top: 0; z-index: 20; background: #111; padding: 10px 0; border-bottom: 1px solid #242424; margin-bottom: 14px; }
+    .toolbar { display: flex; align-items: flex-start; justify-content: flex-start; gap: 28px; flex-wrap: wrap; margin-left: 0; background: #111; margin-bottom: 8px; }
+    .controlGroup { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .networkGroup { margin-left: 0; }
+    .sub { color: #aaa; margin: 0 0 8px; }
+    .status { color: #bbb; font-size: 0.92rem; margin: 3px 0; }
+    .status.ok { color: #4ade80; }
+    .status.bad { color: #f87171; }
+    .buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filterLabel { display: inline-flex; align-items: center; gap: 8px; color: #ccc; font-size: 0.95rem; }
+    .filterSelect { border: 0; border-radius: 8px; padding: 9px 12px; background: #333; color: #fff; }
+    .netPanel { display: none; margin: 0 0 14px; padding: 12px; border: 1px solid #333; border-radius: 12px; background: #171717; }
+    .netPanel.open { display: block; }
+    .netGrid { display: grid; grid-template-columns: minmax(180px, 1.2fr) minmax(120px, 0.8fr) auto auto; gap: 8px; align-items: center; }
+    .netInput, .netSelect { border: 1px solid #444; border-radius: 8px; padding: 9px 10px; background: #222; color: #fff; min-width: 0; }
+    .netStatus { margin-top: 8px; color: #bbb; font-size: 0.92rem; }
+    .commandBar { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; background: #111; padding-top: 4px; }
+    .commandLabel { color: #ccc; font-size: 0.9rem; white-space: nowrap; }
+    .commandInput { width: 58px; border: 1px solid #444; border-radius: 6px; padding: 6px 7px; background: #222; color: #fff; font-family: Consolas, monospace; font-size: 0.9rem; }
+    .commandInput.dgnInput { width: 84px; }
+    .sendStatus { color: #aaa; font-size: 0.86rem; margin-left: 4px; }
+    .sendStatus.ok { color: #4ade80; }
+    .sendStatus.bad { color: #f87171; }
+    button { border: 0; border-radius: 8px; padding: 9px 12px; background: #444; color: #fff; }
+    button:hover { background: #555; cursor: pointer; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; background: #1b1b1b; border-radius: 12px; overflow: visible; }
+    th, td { border-bottom: 1px solid #333; padding: 8px 10px; text-align: left; vertical-align: top; }
+    thead th { background: #242424; position: sticky; top: var(--sticky-top); z-index: 19; box-shadow: 0 1px 0 #333, 0 2px 6px rgba(0,0,0,0.35); }
+    .enableCell { width: 52px; text-align: center; }
+    .enableBox { width: 22px; height: 22px; accent-color: #4ade80; }
+    .dgnCell { font-family: Consolas, monospace; white-space: nowrap; }
+    .sourceHeader { white-space: nowrap; width: 110px; min-width: 110px; }
+    .sourceCell { font-family: Consolas, monospace; white-space: normal; color: #ddd; font-size: 0.92rem; line-height: 1.15; width: 110px; min-width: 110px; max-width: 110px; word-break: normal; }
+    .sourceHex { display: block; white-space: nowrap; }
+    .sourceDec { display: block; white-space: nowrap; color: #aaa; font-size: 0.86rem; margin-top: 2px; }
+    .nameCell { font-weight: 700; min-width: 136px; }
+    .decodedCell { min-width: 720px; width: 70%; }
+    .rawToggle { display: inline-flex; gap: 7px; align-items: center; margin: 0 0 8px; color: #ccc; font-size: 0.92rem; }
+    .rawToggle input { width: 16px; height: 16px; }
+    .instanceBlock { margin-bottom: 10px; padding: 8px; border: 1px solid #333; border-radius: 8px; background: #151515; }
+    .instanceTitle { font-weight: 700; margin-bottom: 6px; }
+    .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 5px 10px; }
+    .field { padding: 5px 6px; border-radius: 6px; background: #202020; }
+    .fieldName { color: #aaa; }
+    .fieldValue { font-family: Consolas, monospace; }
+    .muted { color: #777; }
+    .active { color: #4ade80; font-weight: 700; }
+    .changed { background: #facc15 !important; color: #111 !important; }
+    .changed * { color: #111 !important; }
+    .dgnCell.dgnChanged { background: #facc15 !important; color: #111 !important; font-weight: 700; }
+    .dgnCell.dgnNewActive { background: #fb923c !important; color: #111 !important; font-weight: 700; }
+    .unknownSeparator td { background: #0b0b0b; color: #ddd; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; border-top: 3px solid #777; border-bottom: 2px solid #555; padding: 10px; }
+    .rawTable { margin-top: 8px; border-radius: 8px; overflow: hidden; border: 1px solid #333; }
+    .rawTable table { border-radius: 0; background: #101010; width: 100%; }
+    .rawTable th, .rawTable td { padding: 6px 8px; border-bottom: 1px solid #2d2d2d; }
+    .rawTable thead th, .rawTable th { position: static; top: auto; z-index: auto; background: #252525; font-family: Arial, sans-serif; box-shadow: none; }
+    .byteCol, .bitCol, .valueCol { font-family: Consolas, monospace; text-align: center; white-space: nowrap; }
+    .nameCol { font-weight: 700; }
+    .descCol { color: #ddd; }
+    .rawChanged { background: #facc15 !important; color: #111 !important; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="headerLeft">
+      <h1>RV-C Tool <a class="titleUrl" href="https://github.com/Erik98146/RV-C-Tool" target="_blank" rel="noopener">https://github.com/Erik98146/RV-C-Tool</a></h1>
+      <p id="wsStatus" class="status bad">WebSocket: connecting...</p>
+      <p id="modeStatus" class="status">Mode: idle</p>
+      <p id="eventStatus" class="status">Field events: 0 | Active DGNs seen: 0</p>
+      <p id="diagStatus" class="status">ESP32: waiting for diagnostics</p>
+    </div>
+  </div>
+
+  <div class="stickyControls">
+  <div class="toolbar">
+      <div class="controlGroup">
+        <label class="filterLabel">Sort
+          <select id="sortMode" class="filterSelect" onchange="setSortMode(this.value)">
+            <option value="dgn" selected>DGN</option>
+            <option value="source">Source ID</option>
+            <option value="name">Name</option>
+          </select>
+        </label>
+        <label class="filterLabel">Display
+          <select id="displayFilter" class="filterSelect" onchange="setDisplayFilter(this.value)">
+            <option value="all" selected>All</option>
+            <option value="active">Active DGN's</option>
+            <option value="checked">Checked</option>
+            <option value="unknown">Unknown</option>
+          </select>
+        </label>
+      </div>
+      <div class="controlGroup">
+        <button onclick="discoverAll()">Discover Active DGNs</button>
+        <button onclick="deselectAll()">Deselect All</button>
+        <button onclick="clearHighlights()">Reset Changes</button>
+      </div>
+      <div class="controlGroup networkGroup">
+        <button onclick="toggleNetworkPanel()">Network Config</button>
+      </div>
+  </div>
+
+  <div class="commandBar">
+    <span class="commandLabel">DGN:</span>
+    <input id="cmdDgn" class="commandInput dgnInput" type="text" placeholder="1FEDB" inputmode="text">
+    <span class="commandLabel">Byte 0:</span><input id="cmdB0" class="commandInput" type="number" min="0" max="255" value="0">
+    <span class="commandLabel">Byte 1:</span><input id="cmdB1" class="commandInput" type="number" min="0" max="255" value="0">
+    <span class="commandLabel">Byte 2:</span><input id="cmdB2" class="commandInput" type="number" min="0" max="255" value="0">
+    <span class="commandLabel">Byte 3:</span><input id="cmdB3" class="commandInput" type="number" min="0" max="255" value="0">
+    <span class="commandLabel">Byte 4:</span><input id="cmdB4" class="commandInput" type="number" min="0" max="255" value="0">
+    <span class="commandLabel">Byte 5:</span><input id="cmdB5" class="commandInput" type="number" min="0" max="255" value="0">
+    <span class="commandLabel">Byte 6:</span><input id="cmdB6" class="commandInput" type="number" min="0" max="255" value="0">
+    <span class="commandLabel">Byte 7:</span><input id="cmdB7" class="commandInput" type="number" min="0" max="255" value="0">
+    <button onclick="sendRvcCommand()">Send</button>
+    <span id="sendStatus" class="sendStatus"></span>
+  </div>
+  </div>
+
+  <div id="networkPanel" class="netPanel">
+    <div class="netGrid">
+      <select id="wifiSsidSelect" class="netSelect" onchange="selectScannedSsid(this.value)">
+        <option value="">Scan for Wi-Fi networks...</option>
+      </select>
+      <input id="wifiPassword" class="netInput" type="password" placeholder="Password, blank for open network">
+      <button onclick="scanWifi()">Scan</button>
+      <button onclick="connectWifi()">Join AP</button>
+    </div>
+    <div id="wifiStatus" class="netStatus">Wi-Fi STA: not checked yet</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Decode</th>
+        <th>DGN</th>
+        <th class="sourceHeader">Source ID</th>
+        <th>Name</th>
+        <th>Decoded Data</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <script>
+    const CATALOG = [{"dgn":"0x000E8","name":"ACKNOWLEDGMENT"},{"dgn":"0x000EA","name":"REQUEST_FOR_DGN"},{"dgn":"0x0016C","name":"DC_COMPONENT_DRIVER_STATUS_4"},{"dgn":"0x0016F","name":"DC_COMPONENT_DRIVER_STATUS_1"},{"dgn":"0x0017D","name":"DOWNLOAD"},{"dgn":"0x0017E","name":"TERMINAL"},{"dgn":"0x0017F","name":"GENERAL_RESET"},{"dgn":"0x0BFC1","name":"G12_TANK_LEVEL_SENSOR"},{"dgn":"0x0EBFF","name":"DATA_PACKET"},{"dgn":"0x0ECFF","name":"INITIAL_PACKET"},{"dgn":"0x0EE00","name":"ADDRESS_CLAIM"},{"dgn":"0x0EEFF","name":"ADDRESS_CLAIM"},{"dgn":"0x0EF70","name":"WAKESPEED_BMS_QUERY"},{"dgn":"0x0EF80","name":"RENOGY_BMS_RESPONSE"},{"dgn":"0x0F004","name":"UNKNOWN-0F004"},{"dgn":"0x0FC08","name":"UNKNOWN-0FC08"},{"dgn":"0x0FECA","name":"DM_1"},{"dgn":"0x0FED5","name":"J1939_ALTERNATOR_INFORMATION_1"},{"dgn":"0x0FEEB","name":"PRODUCT_IDENTIFICATION"},{"dgn":"0x0FEF3","name":"GPS_POSITION"},{"dgn":"0x0FF01","name":"UNKNOWN-0FF01"},{"dgn":"0x10FFD","name":"DC_SOURCE_STATUS_SPYDER"},{"dgn":"0x15FCE","name":"G12_CONFIGURATION"},{"dgn":"0x1AAB7","name":"UNKNOWN-1AAB7"},{"dgn":"0x1AADC","name":"UNKNOWN-1AADC"},{"dgn":"0x1AAFD","name":"DC_SOURCE_STATUS_G12"},{"dgn":"0x1EE00","name":"UNKNOWN-1EE00"},{"dgn":"0x1EF65","name":"TIMBERLINE_PROPRIETARY"},{"dgn":"0x1FACE","name":"UNKNOWN-1FACE"},{"dgn":"0x1FACF","name":"UNKNOWN-1FACF"},{"dgn":"0x1FBDA","name":"G12_INPUT_STATUS"},{"dgn":"0x1FDCB","name":"INVERTER_TEMPERATURE_STATUS_2"},{"dgn":"0x1FDE2","name":"ROOF_FAN_COMMAND_2"},{"dgn":"0x1FDE3","name":"ROOF_FAN_STATUS_2"},{"dgn":"0x1FDF9","name":"SOLAR_CONTROLLER_CONFIGURATION_COMMAND_4"},{"dgn":"0x1FDFA","name":"SOLAR_CONTROLLER_CONFIGURATION_STATUS_4"},{"dgn":"0x1FDFB","name":"SOLAR_CONTROLLER_CONFIGURATION_COMMAND_3"},{"dgn":"0x1FDFC","name":"SOLAR_CONTROLLER_CONFIGURATION_STATUS_3"},{"dgn":"0x1FDFD","name":"SOLAR_CONTROLLER_CONFIGURATION_COMMAND_2"},{"dgn":"0x1FDFE","name":"SOLAR_CONTROLLER_CONFIGURATION_STATUS_2"},{"dgn":"0x1FDFF","name":"SOLAR_CONTROLLER_SOLAR_ARRAY_STATUS"},{"dgn":"0x1FE80","name":"SOLAR_CONTROLLER_BATTERY_STATUS"},{"dgn":"0x1FE81","name":"SOLAR_CONTROLLER_STATUS_6"},{"dgn":"0x1FE82","name":"SOLAR_CONTROLLER_STATUS_5"},{"dgn":"0x1FE83","name":"SOLAR_CONTROLLER_STATUS_4"},{"dgn":"0x1FE84","name":"SOLAR_CONTROLLER_STATUS_3"},{"dgn":"0x1FE85","name":"SOLAR_CONTROLLER_STATUS_2"},{"dgn":"0x1FE8B","name":"BATTERY_STATUS_11"},{"dgn":"0x1FE8C","name":"BATTERY_STATUS_10"},{"dgn":"0x1FE8D","name":"BATTERY_STATUS_9"},{"dgn":"0x1FE8E","name":"BATTERY_STATUS_8"},{"dgn":"0x1FE8F","name":"BATTERY_STATUS_7"},{"dgn":"0x1FE90","name":"BATTERY_STATUS_6"},{"dgn":"0x1FE91","name":"BATTERY_STATUS_5"},{"dgn":"0x1FE92","name":"BATTERY_STATUS_4"},{"dgn":"0x1FE93","name":"BATTERY_STATUS_3"},{"dgn":"0x1FE94","name":"BATTERY_STATUS_2"},{"dgn":"0x1FE95","name":"BATTERY_STATUS_1"},{"dgn":"0x1FE96","name":"CIRCULATION_PUMP_COMMAND"},{"dgn":"0x1FE97","name":"CIRCULATION_PUMP_STATUS"},{"dgn":"0x1FE98","name":"WATERHEATER_COMMAND2"},{"dgn":"0x1FE99","name":"WATERHEATER_STATUS_2"},{"dgn":"0x1FE9F","name":"GENERIC_ALARM_STATUS"},{"dgn":"0x1FEA3","name":"CHARGER_STATUS_2"},{"dgn":"0x1FEA5","name":"BATTERY_STATUS_11"},{"dgn":"0x1FEA6","name":"ROOF_FAN_COMMAND_1"},{"dgn":"0x1FEA7","name":"ROOF_FAN_STATUS_1"},{"dgn":"0x1FEAD","name":"SOLAR_EQUALIZATION_CONFIGURATION_COMMAND"},{"dgn":"0x1FEAE","name":"SOLAR_EQUALIZATION_CONFIGURATION_STATUS"},{"dgn":"0x1FEAF","name":"SOLAR_EQUALIZATION_STATUS"},{"dgn":"0x1FEB0","name":"SOLAR_CONTROLLER_CONFIGURATION_COMMAND"},{"dgn":"0x1FEB1","name":"SOLAR_CONTROLLER_COMMAND"},{"dgn":"0x1FEB2","name":"SOLAR_CONTROLLER_CONFIGURATION_STATUS"},{"dgn":"0x1FEB3","name":"SOLAR_CONTROLLER_STATUS"},{"dgn":"0x1FEB4","name":"GENERIC_ACFAULT_CONFIGURATION_COMMAND_2"},{"dgn":"0x1FEB5","name":"GENERIC_ACFAULT_CONFIGURATION_COMMAND_1"},{"dgn":"0x1FEB6","name":"GENERIC_ACFAULT_CONFIGURATION_STATUS_2"},{"dgn":"0x1FEB7","name":"GENERIC_ACFAULT_CONFIGURATION_STATUS_1"},{"dgn":"0x1FEB8","name":"GENERIC_AC_STATUS_4"},{"dgn":"0x1FEB9","name":"GENERIC_AC_STATUS_3"},{"dgn":"0x1FEBA","name":"GENERIC_AC_STATUS_2"},{"dgn":"0x1FEBB","name":"GENERIC_AC_STATUS_1"},{"dgn":"0x1FEBC","name":"HYDRAULIC_PUMP_COMMAND"},{"dgn":"0x1FEBD","name":"INVERTER_TEMPERATURE_STATUS"},{"dgn":"0x1FEBE","name":"CHARGER_CONFIGURATION_COMMAND_4"},{"dgn":"0x1FEBF","name":"CHARGER_CONFIGURATION_STATUS_4"},{"dgn":"0x1FEC0","name":"GENERATOR_DC_EQUALIZATION_CONFIGURATION_COMMAND"},{"dgn":"0x1FEC1","name":"GENERATOR_DC_EQUALIZATION_CONFIGURATION_STATUS"},{"dgn":"0x1FEC2","name":"GENERATOR_DC_EQUALIZATION_STATUS"},{"dgn":"0x1FEC3","name":"GENERATOR_DC_CONFIGURATION_COMMAND"},{"dgn":"0x1FEC4","name":"GENERATOR_DC_COMMAND"},{"dgn":"0x1FEC5","name":"GENERATOR_DC_CONFIGURATION_STATUS"},{"dgn":"0x1FEC6","name":"GENERATOR_DC_STATUS_1"},{"dgn":"0x1FEC7","name":"DC_SOURCE_STATUS_6"},{"dgn":"0x1FEC8","name":"DC_SOURCE_STATUS_5"},{"dgn":"0x1FEC9","name":"DC_SOURCE_STATUS_4"},{"dgn":"0x1FECA","name":"DM_RV"},{"dgn":"0x1FECB","name":"CHARGER_CONFIGURATION_COMMAND_3"},{"dgn":"0x1FECC","name":"CHARGER_CONFIGURATION_STATUS_3"},{"dgn":"0x1FECD","name":"INVERTER_CONFIGURATION_COMMAND_3"},{"dgn":"0x1FECE","name":"INVERTER_CONFIGURATION_STATUS_3"},{"dgn":"0x1FECF","name":"DC_DISCONNECT_COMMAND"},{"dgn":"0x1FED0","name":"DC_DISCONNECT_STATUS"},{"dgn":"0x1FED1","name":"SUSPENSION_AIR_PRESSURE_STATUS"},{"dgn":"0x1FED2","name":"AGS_CRITERION_STATUS_2"},{"dgn":"0x1FED3","name":"GPS_STATUS"},{"dgn":"0x1FED4","name":"AGS_DEMAND_CONFIGURATION_COMMAND"},{"dgn":"0x1FED5","name":"AGS_DEMAND_CONFIGURATION_STATUS"},{"dgn":"0x1FED6","name":"MFG_SPECIFIC_CLAIM_REQUEST"},{"dgn":"0x1FED7","name":"GENERIC_INDICATOR_STATUS"},{"dgn":"0x1FED8","name":"GENERIC_CONFIGURATION_STATUS"},{"dgn":"0x1FED9","name":"GENERIC_INDICATOR_COMMAND"},{"dgn":"0x1FEDA","name":"DC_DIMMER_STATUS_3"},{"dgn":"0x1FEDB","name":"DC_DIMMER_COMMAND_2"},{"dgn":"0x1FEDC","name":"DC_LOAD_STATUS_2"},{"dgn":"0x1FEDD","name":"AC_LOAD_STATUS_2"},{"dgn":"0x1FEDE","name":"WINDOW_SHADE_CONTROL_STATUS"},{"dgn":"0x1FEDF","name":"WINDOW_SHADE_CONTROL_COMMAND"},{"dgn":"0x1FEE0","name":"DC_MOTOR_CONTROL_STATUS"},{"dgn":"0x1FEE1","name":"DC_MOTOR_CONTROL_COMMAND"},{"dgn":"0x1FEE2","name":"WINDOW_COMMAND"},{"dgn":"0x1FEE3","name":"WINDOW_STATUS"},{"dgn":"0x1FEE4","name":"LOCK_COMMAND"},{"dgn":"0x1FEE5","name":"LOCK_STATUS"},{"dgn":"0x1FEE8","name":"INVERTER_DC_STATUS"},{"dgn":"0x1FEE9","name":"TIRE_ID_COMMAND"},{"dgn":"0x1FEEA","name":"TIRE_ID_STATUS"},{"dgn":"0x1FEEB","name":"TIRE_TEMPERATURE_CONFIGURATION_COMMAND"},{"dgn":"0x1FEEC","name":"TIRE_PRESSURE_CONFIGURATION_COMMAND"},{"dgn":"0x1FEED","name":"TIRE_PRESSURE_CONFIGURATION_STATUS"},{"dgn":"0x1FEEE","name":"TIRE_TEMPERATURE_CONFIGURATION_STATUS"},{"dgn":"0x1FEEF","name":"TIRE_SLOW_LEAK_ALARM"},{"dgn":"0x1FEF0","name":"TIRE_STATUS"},{"dgn":"0x1FEF1","name":"TIRE_RAW_STATUS"},{"dgn":"0x1FEF2","name":"AWNING_COMMAND"},{"dgn":"0x1FEF3","name":"AWNING_STATUS"},{"dgn":"0x1FEF4","name":"THERMOSTAT_SCHEDULE_COMMAND_2"},{"dgn":"0x1FEF5","name":"THERMOSTAT_SCHEDULE_COMMAND_1"},{"dgn":"0x1FEF6","name":"THERMOSTAT_SCHEDULE_STATUS_2"},{"dgn":"0x1FEF7","name":"THERMOSTAT_SCHEDULE_STATUS_1"},{"dgn":"0x1FEF8","name":"THERMOSTAT_COMMAND_2"},{"dgn":"0x1FEF9","name":"THERMOSTAT_COMMAND_1"},{"dgn":"0x1FEFA","name":"THERMOSTAT_STATUS_2"},{"dgn":"0x1FEFB","name":"FLOOR_HEAT_COMMAND"},{"dgn":"0x1FEFC","name":"FLOOR_HEAT_STATUS"},{"dgn":"0x1FEFD","name":"AGS_CRITERION_COMMAND"},{"dgn":"0x1FEFE","name":"AGS_CRITERION_STATUS"},{"dgn":"0x1FEFF","name":"GENERATOR_DEMAND_COMMAND"},{"dgn":"0x1FF80","name":"GENERATOR_DEMAND_STATUS"},{"dgn":"0x1FF81","name":"ATS_ACFAULT_CONFIGURATION_COMMAND_2"},{"dgn":"0x1FF82","name":"ATS_ACFAULT_CONFIGURATION_COMMAND_1"},{"dgn":"0x1FF83","name":"ATS_ACFAULT_CONFIGURATION_STATUS_2"},{"dgn":"0x1FF84","name":"ATS_ACFAULT_CONFIGURATION_STATUS_1"},{"dgn":"0x1FF85","name":"ATS_AC_STATUS_4"},{"dgn":"0x1FF86","name":"CHARGER_ACFAULT_CONFIGURATION_COMMAND_2"},{"dgn":"0x1FF87","name":"CHARGER_ACFAULT_CONFIGURATION_COMMAND_1"},{"dgn":"0x1FF88","name":"CHARGER_ACFAULT_CONFIGURATION_STATUS_2"},{"dgn":"0x1FF89","name":"CHARGER_ACFAULT_CONFIGURATION_STATUS_1"},{"dgn":"0x1FF8A","name":"CHARGER_AC_STATUS_4"},{"dgn":"0x1FF8B","name":"INVERTER_ACFAULT_CONFIGURATION_COMMAND_2"},{"dgn":"0x1FF8C","name":"INVERTER_ACFAULT_CONFIGURATION_COMMAND_1"},{"dgn":"0x1FF8D","name":"INVERTER_ACFAULT_CONFIGURATION_STATUS_2"},{"dgn":"0x1FF8E","name":"INVERTER_ACFAULT_CONFIGURATION_STATUS_1"},{"dgn":"0x1FF8F","name":"INVERTER_AC_STATUS_4"},{"dgn":"0x1FF94","name":"GENERATOR_AC_STATUS_4"},{"dgn":"0x1FF95","name":"CHARGER_CONFIGURATION_COMMAND_2"},{"dgn":"0x1FF96","name":"CHARGER_CONFIGURATION_STATUS_2"},{"dgn":"0x1FF97","name":"CHARGER_EQUALIZATION_CONFIGURATION_COMMAND"},{"dgn":"0x1FF98","name":"CHARGER_EQUALIZATION_CONFIGURATION_STATUS"},{"dgn":"0x1FF99","name":"CHARGER_EQUALIZATION_STATUS"},{"dgn":"0x1FF9A","name":"HEAT_PUMP_COMMAND"},{"dgn":"0x1FF9B","name":"HEAT_PUMP_STATUS"},{"dgn":"0x1FF9C","name":"THERMOSTAT_AMBIENT_STATUS"},{"dgn":"0x1FF9F","name":"COMPASS_CALIBRATE_COMMAND"},{"dgn":"0x1FFA0","name":"COMPASS_BEARING_STATUS"},{"dgn":"0x1FFA1","name":"WEATHER_CALIBRATE_COMMAND"},{"dgn":"0x1FFA2","name":"ALTIMETER_COMMAND"},{"dgn":"0x1FFA3","name":"ALTIMETER_STATUS"},{"dgn":"0x1FFA4","name":"WEATHER_STATUS_2"},{"dgn":"0x1FFA5","name":"WEATHER_STATUS_1"},{"dgn":"0x1FFA9","name":"ATS_COMMAND"},{"dgn":"0x1FFAA","name":"ATS_STATUS"},{"dgn":"0x1FFAB","name":"ATS_AC_STATUS_3"},{"dgn":"0x1FFAC","name":"ATS_AC_STATUS_2"},{"dgn":"0x1FFAD","name":"ATS_AC_STATUS_1"},{"dgn":"0x1FFAE","name":"WASTEDUMP_COMMAND"},{"dgn":"0x1FFAF","name":"WASTEDUMP_STATUS"},{"dgn":"0x1FFB0","name":"AUTOFILL_COMMAND"},{"dgn":"0x1FFB1","name":"AUTOFILL_STATUS"},{"dgn":"0x1FFB2","name":"WATER_PUMP_COMMAND"},{"dgn":"0x1FFB3","name":"WATER_PUMP_STATUS"},{"dgn":"0x1FFB4","name":"TANK_GEOMETRY_COMMAND"},{"dgn":"0x1FFB5","name":"TANK_GEOMETRY_STATUS"},{"dgn":"0x1FFB6","name":"TANK_CALIBRATION_COMMAND"},{"dgn":"0x1FFB7","name":"TANK_STATUS"},{"dgn":"0x1FFB8","name":"DIGITAL_INPUT_STATUS"},{"dgn":"0x1FFB9","name":"DC_DIMMER_COMMAND"},{"dgn":"0x1FFBA","name":"DC_DIMMER_STATUS_2"},{"dgn":"0x1FFBB","name":"DC_DIMMER_STATUS_1"},{"dgn":"0x1FFBC","name":"DC_LOAD_COMMAND"},{"dgn":"0x1FFBD","name":"DC_LOAD_STATUS"},{"dgn":"0x1FFBE","name":"AC_LOAD_COMMAND"},{"dgn":"0x1FFBF","name":"AC_LOAD_STATUS"},{"dgn":"0x1FFC4","name":"CHARGER_CONFIGURATION_COMMAND"},{"dgn":"0x1FFC5","name":"CHARGER_COMMAND"},{"dgn":"0x1FFC6","name":"CHARGER_CONFIGURATION_STATUS"},{"dgn":"0x1FFC7","name":"CHARGER_STATUS"},{"dgn":"0x1FFC8","name":"CHARGER_AC_STATUS_3"},{"dgn":"0x1FFC9","name":"CHARGER_AC_STATUS_2"},{"dgn":"0x1FFCA","name":"CHARGER_AC_STATUS_1"},{"dgn":"0x1FFCB","name":"INVERTER_OPE_STATUS"},{"dgn":"0x1FFCC","name":"INVERTER_DCBUS_STATUS"},{"dgn":"0x1FFCD","name":"INVERTER_APS_STATUS"},{"dgn":"0x1FFCE","name":"INVERTER_STATISTIC_STATUS"},{"dgn":"0x1FFCF","name":"INVERTER_CONFIGURATION_COMMAND_2"},{"dgn":"0x1FFD0","name":"INVERTER_CONFIGURATION_COMMAND_1"},{"dgn":"0x1FFD1","name":"INVERTER_CONFIGURATION_STATUS_2"},{"dgn":"0x1FFD2","name":"INVERTER_CONFIGURATION_STATUS_1"},{"dgn":"0x1FFD3","name":"INVERTER_COMMAND"},{"dgn":"0x1FFD4","name":"INVERTER_STATUS"},{"dgn":"0x1FFD5","name":"INVERTER_AC_STATUS_3"},{"dgn":"0x1FFD6","name":"INVERTER_AC_STATUS_2"},{"dgn":"0x1FFD7","name":"INVERTER_AC_STATUS_1"},{"dgn":"0x1FFD8","name":"GENERATOR_START_CONFIG_COMMAND"},{"dgn":"0x1FFD9","name":"GENERATOR_START_CONFIG_STATUS"},{"dgn":"0x1FFDA","name":"GENERATOR_COMMAND"},{"dgn":"0x1FFDB","name":"GENERATOR_STATUS_2"},{"dgn":"0x1FFDC","name":"GENERATOR_STATUS_1"},{"dgn":"0x1FFDD","name":"GENERATOR_AC_STATUS_3"},{"dgn":"0x1FFDE","name":"GENERATOR_AC_STATUS_2"},{"dgn":"0x1FFDF","name":"GENERATOR_AC_STATUS_1"},{"dgn":"0x1FFE0","name":"AIR_CONDITIONER_COMMAND"},{"dgn":"0x1FFE1","name":"AIR_CONDITIONER_STATUS"},{"dgn":"0x1FFE2","name":"THERMOSTAT_STATUS_1"},{"dgn":"0x1FFE3","name":"FURNACE_COMMAND"},{"dgn":"0x1FFE4","name":"FURNACE_STATUS"},{"dgn":"0x1FFE5","name":"SLIDE_MOTOR_STATUS"},{"dgn":"0x1FFE6","name":"SLIDE_SENSOR_STATUS"},{"dgn":"0x1FFE7","name":"SLIDE_COMMAND"},{"dgn":"0x1FFE8","name":"SLIDE_STATUS"},{"dgn":"0x1FFE9","name":"LEVELING_AIR_STATUS"},{"dgn":"0x1FFEA","name":"HYDRAULIC_PUMP_STATUS"},{"dgn":"0x1FFEB","name":"LEVELING_SENSOR_STATUS"},{"dgn":"0x1FFEC","name":"LEVELING_JACK_STATUS"},{"dgn":"0x1FFED","name":"LEVELING_CONTROL_STATUS"},{"dgn":"0x1FFEE","name":"LEVELING_CONTROL_COMMAND"},{"dgn":"0x1FFEF","name":"AAS_SENSOR_STATUS"},{"dgn":"0x1FFF0","name":"AAS_STATUS"},{"dgn":"0x1FFF1","name":"AAS_COMMAND"},{"dgn":"0x1FFF2","name":"AAS_CONFIG_STATUS"},{"dgn":"0x1FFF3","name":"CHASSIS_MOBILITY_COMMAND"},{"dgn":"0x1FFF4","name":"CHASSIS_MOBILITY_STATUS"},{"dgn":"0x1FFF5","name":"GAS_SENSOR_STATUS"},{"dgn":"0x1FFF6","name":"WATERHEATER_COMMAND"},{"dgn":"0x1FFF7","name":"WATERHEATER_STATUS"},{"dgn":"0x1FFF8","name":"COMMUNICATION_STATUS_3"},{"dgn":"0x1FFF9","name":"COMMUNICATION_STATUS_2"},{"dgn":"0x1FFFA","name":"COMMUNICATION_STATUS_1"},{"dgn":"0x1FFFB","name":"DC_SOURCE_STATUS_3"},{"dgn":"0x1FFFC","name":"DC_SOURCE_STATUS_2"},{"dgn":"0x1FFFD","name":"DC_SOURCE_STATUS_1"},{"dgn":"0x1FFFE","name":"SET_DATE_TIME_COMMAND"},{"dgn":"0x1FFFF","name":"DATE_TIME_STATUS"}];
+
+    let ws = null;
+    let reconnectTimer = null;
+    let dgnRows = {};
+    let showRawByDgn = {};
+    let latchedFieldChanges = {};
+    let latchedDgnChanges = {};
+    let latchedNewActiveDgns = {};
+    let latchedUnknownDgns = {};
+    let latchedUnknownRawByteChanges = {};
+    let latchedUnknownRawBitChanges = {};
+    let fieldEventCount = 0;
+    let activeDgnCount = 0;
+    let knownFieldSeq = {};
+    let pollInFlight = false;
+    let renderQueued = false;
+    let displayFilter = 'all';
+    let sortMode = 'dgn';
+    let lastSnapshotSignature = '';
+    let lastRenderMs = 0;
+
+    function esc(s) {
+      const value = (s === undefined || s === null) ? '' : s;
+      return String(value).replace(/[&<>"]/g, function(c) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+      });
+    }
+
+    function initCatalog() {
+      dgnRows = {};
+      for (const d of CATALOG) {
+        dgnRows[d.dgn] = {
+          dgn: d.dgn,
+          name: d.name,
+          enabled: false,
+          active: false,
+          count: 0,
+          instances: {}, sourceIds: [], rawBytes: null,
+          unknown: false
+        };
+      }
+      render();
+    }
+
+    function sendCommand(command) {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        console.log('WebSocket not open; command skipped:', command);
+        return;
+      }
+      ws.send(command);
+    }
+
+    function setDisplayFilter(value) {
+      displayFilter = value || 'all';
+      render();
+    }
+
+    function setSortMode(value) {
+      sortMode = value || 'dgn';
+      render();
+    }
+
+
+    function toggleNetworkPanel() {
+      const panel = document.getElementById('networkPanel');
+      panel.classList.toggle('open');
+      refreshWifiStatus();
+    }
+
+    async function refreshWifiStatus() {
+      const el = document.getElementById('wifiStatus');
+      if (!el) return;
+      try {
+        const res = await fetch('/api/wifi/status', { cache: 'no-store' });
+        const data = await res.json();
+        const sta = data.sta_got_ip ? ('connected to ' + (data.sta_ssid || '-') + ' at ' + (data.sta_ip || '-')) :
+                    data.sta_connected ? ('associated with ' + (data.sta_ssid || '-') + ', waiting for IP') :
+                    'not connected';
+        el.textContent = 'AP: ' + data.ap_ssid + ' at ' + data.ap_ip + ' | Wi-Fi STA: ' + sta;
+      } catch (e) {
+        el.textContent = 'Wi-Fi status unavailable: ' + e.message;
+      }
+    }
+
+    function selectScannedSsid(value) {
+      // The select itself is the SSID field. This function exists so future
+      // manual-entry behavior can be added without changing the button wiring.
+    }
+
+    async function scanWifi() {
+      const el = document.getElementById('wifiStatus');
+      const sel = document.getElementById('wifiSsidSelect');
+      el.textContent = 'Scanning for Wi-Fi networks...';
+      try {
+        const res = await fetch('/api/wifi/scan', { cache: 'no-store' });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || 'scan failed');
+        sel.innerHTML = '';
+        if (!data.aps || data.aps.length === 0) {
+          const opt = document.createElement('option');
+          opt.value = '';
+          opt.textContent = 'No networks found';
+          sel.appendChild(opt);
+        } else {
+          for (const ap of data.aps) {
+            const opt = document.createElement('option');
+            opt.value = ap.ssid;
+            opt.textContent = ap.ssid + ' (' + ap.rssi + ' dBm)';
+            sel.appendChild(opt);
+          }
+        }
+        el.textContent = 'Scan complete. Select an SSID and press Join AP.';
+      } catch (e) {
+        el.textContent = 'Wi-Fi scan failed: ' + e.message;
+      }
+    }
+
+    async function connectWifi() {
+      const el = document.getElementById('wifiStatus');
+      const ssid = document.getElementById('wifiSsidSelect').value;
+      const password = document.getElementById('wifiPassword').value || '';
+      if (!ssid) {
+        el.textContent = 'Select an SSID first.';
+        return;
+      }
+      el.textContent = 'Joining ' + ssid + '...';
+      try {
+        const url = '/api/wifi/connect?ssid=' + encodeURIComponent(ssid) + '&password=' + encodeURIComponent(password);
+        const res = await fetch(url, { cache: 'no-store' });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.status || 'connect failed');
+        el.textContent = 'Join requested for ' + ssid + '. Waiting for IP...';
+        setTimeout(refreshWifiStatus, 1500);
+        setTimeout(refreshWifiStatus, 4000);
+      } catch (e) {
+        el.textContent = 'Wi-Fi join failed: ' + e.message;
+      }
+    }
+
+    function normalizeSourceId(value) {
+      if (value === undefined || value === null || value === '') return '';
+      const s = String(value);
+      let n = NaN;
+      if (s.startsWith('0x') || s.startsWith('0X')) n = parseInt(s, 16);
+      else n = Number(s);
+      if (Number.isFinite(n)) return String(n & 0xFF);
+      return s;
+    }
+
+    function formatSourceId(value) {
+      const n = Number(value);
+      if (Number.isFinite(n)) {
+        return '0x' + (n & 0xFF).toString(16).toUpperCase().padStart(2, '0') + ' (' + (n & 0xFF) + ')';
+      }
+      return value || '-';
+    }
+
+    function addSourceId(row, sourceId) {
+      const sid = normalizeSourceId(sourceId);
+      if (!sid) return;
+      if (!row.sourceIds) row.sourceIds = [];
+      if (!row.sourceIds.includes(sid)) row.sourceIds.push(sid);
+      row.sourceIds.sort(function(a, b) { return Number(a) - Number(b); });
+    }
+
+    function sourceText(row) {
+      if (!row.sourceIds || row.sourceIds.length === 0) return '-';
+      return row.sourceIds.map(formatSourceId).join(', ');
+    }
+
+    function sourceHtml(row) {
+      if (!row.sourceIds || row.sourceIds.length === 0) return '-';
+      return row.sourceIds.map(function(value) {
+        const n = Number(value);
+        if (Number.isFinite(n)) {
+          const v = n & 0xFF;
+          return '<span class="sourceHex">0x' + esc(v.toString(16).toUpperCase().padStart(2, '0')) + '</span>' +
+                 '<span class="sourceDec">(' + esc(v) + ')</span>';
+        }
+        return '<span class="sourceHex">' + esc(value || '-') + '</span>';
+      }).join('<br>');
+    }
+
+    function sourceSortValue(row) {
+      if (!row.sourceIds || row.sourceIds.length === 0) return 9999;
+      const nums = row.sourceIds.map(Number).filter(Number.isFinite);
+      return nums.length ? Math.min.apply(null, nums) : 9999;
+    }
+
+    function rowMatchesDisplayFilter(row) {
+      if (displayFilter === 'active') return !!row.active;
+      if (displayFilter === 'checked') return !!row.enabled;
+      if (displayFilter === 'unknown') return !!row.unknown;
+      return true;
+    }
+
+    function discoverAll() {
+      clearHighlights();
+
+      // Discovery mode is intentionally collapsed/lightweight.
+      // Hide all expanded decoded/raw details and uncheck any selected DGNs locally;
+      // the firmware /api/select_all command also disables selected decode mode.
+      showRawByDgn = {};
+      knownFieldSeq = {};
+      fieldEventCount = 0;
+      activeDgnCount = 0;
+
+      for (const dgn in dgnRows) {
+        dgnRows[dgn].enabled = false;
+        dgnRows[dgn].active = false;
+        dgnRows[dgn].count = 0;
+        dgnRows[dgn].instances = {};
+        dgnRows[dgn].sourceIds = [];
+        dgnRows[dgn].rawBytes = null;
+      }
+
+      updateEventStatus();
+      document.getElementById('modeStatus').textContent = 'Mode: discovering active DGNs only. Check a DGN box to decode it.';
+      render();
+
+      sendCommand('select_all');
+      apiGet('/api/select_all').then(pollState);
+    }
+
+    function deselectAll() {
+      clearHighlights();
+      for (const dgn in dgnRows) {
+        dgnRows[dgn].enabled = false;
+        dgnRows[dgn].active = false;
+        dgnRows[dgn].count = 0;
+        dgnRows[dgn].instances = {};
+        dgnRows[dgn].sourceIds = [];
+        dgnRows[dgn].rawBytes = null;
+      }
+      activeDgnCount = 0;
+      updateEventStatus();
+      document.getElementById('modeStatus').textContent = 'Mode: idle';
+      render();
+      sendCommand('deselect_all');
+      apiGet('/api/deselect_all').then(pollState);
+    }
+
+    function setEnable(dgn, on) {
+      clearHighlights();
+      if (!dgnRows[dgn]) return;
+      dgnRows[dgn].enabled = on;
+      if (!on) {
+        dgnRows[dgn].instances = {};
+        dgnRows[dgn].sourceIds = [];
+        dgnRows[dgn].rawBytes = null;
+      }
+      render();
+      sendCommand('enable:' + dgn + ':' + (on ? 1 : 0));
+      apiGet('/api/enable?dgn=' + encodeURIComponent(dgn) + '&enabled=' + (on ? 1 : 0)).then(pollState);
+    }
+
+    function setShowRaw(dgn, on) {
+      showRawByDgn[dgn] = on;
+      render();
+    }
+
+    function clearHighlights() {
+      latchedFieldChanges = {};
+      latchedDgnChanges = {};
+      latchedNewActiveDgns = {};
+      latchedUnknownDgns = {};
+      latchedUnknownRawByteChanges = {};
+      latchedUnknownRawBitChanges = {};
+      render();
+    }
+
+    function fieldKey(dgn, instance, fieldName) {
+      return dgn + '|' + instance + '|' + fieldName;
+    }
+
+    function instanceKey(instance) {
+      return String(instance === undefined || instance === null ? 'n/a' : instance);
+    }
+
+    function markDgnChanged(dgn) {
+      if (dgn) latchedDgnChanges[dgn] = true;
+    }
+
+    function markNewActiveDgn(dgn) {
+      if (dgn && displayFilter === 'active') latchedNewActiveDgns[dgn] = true;
+    }
+
+    function updateUnknownRawBytes(dgn, bytes) {
+      if (!dgn || !Array.isArray(bytes) || !dgnRows[dgn]) return;
+
+      const next = bytes.slice(0, 8).map(function(v) {
+        const n = Number(v);
+        if (!Number.isFinite(n)) return 0;
+        return Math.max(0, Math.min(255, n | 0));
+      });
+      const previous = Array.isArray(dgnRows[dgn].rawBytes) ? dgnRows[dgn].rawBytes : null;
+
+      if (previous) {
+        for (let byteIndex = 0; byteIndex < next.length; byteIndex++) {
+          const oldValue = Number(previous[byteIndex]);
+          const newValue = Number(next[byteIndex]);
+          if (!Number.isFinite(oldValue)) continue;
+
+          if (oldValue !== newValue) {
+            latchedUnknownRawByteChanges[dgn + '|' + byteIndex] = true;
+            markDgnChanged(dgn);
+          }
+
+          for (let bit = 0; bit <= 7; bit++) {
+            const oldBit = (oldValue >> bit) & 1;
+            const newBit = (newValue >> bit) & 1;
+            if (oldBit !== newBit) {
+              latchedUnknownRawBitChanges[dgn + '|' + byteIndex + '|' + bit] = true;
+              markDgnChanged(dgn);
+            }
+          }
+        }
+      }
+
+      dgnRows[dgn].rawBytes = next;
+    }
+
+    function applyClear() {
+      for (const dgn in dgnRows) {
+        dgnRows[dgn].instances = {};
+        dgnRows[dgn].sourceIds = [];
+        dgnRows[dgn].rawBytes = null;
+      }
+      render();
+    }
+
+    function applyMode(msg) {
+      const el = document.getElementById('modeStatus');
+      if (msg.mode === 'discovery') {
+        el.textContent = 'Mode: discovering active DGNs only. Check a DGN box to decode it.';
+      } else if (msg.mode === 'selected') {
+        el.textContent = 'Mode: decoding selected DGNs only';
+      } else {
+        el.textContent = 'Mode: idle';
+      }
+    }
+
+    function applyActivity(msg) {
+      const dgn = msg.dgn;
+      if (!dgnRows[dgn]) {
+        dgnRows[dgn] = {dgn: dgn, name: msg.name || '', enabled: false, active: false, count: 0, instances: {}, sourceIds: [], rawBytes: null, unknown: !!msg.unknown};
+      }
+      if (!dgnRows[dgn].active) {
+        activeDgnCount++;
+        if (msg.unknown) latchedUnknownDgns[dgn] = true;
+        markNewActiveDgn(dgn);
+      }
+      if (msg.unknown) latchedUnknownDgns[dgn] = true;
+      markDgnChanged(dgn);
+      dgnRows[dgn].active = true;
+      dgnRows[dgn].unknown = !!msg.unknown || !!dgnRows[dgn].unknown;
+      dgnRows[dgn].count = msg.count || (dgnRows[dgn].count + 1);
+      addSourceId(dgnRows[dgn], msg.source_id);
+      if (msg.unknown && Array.isArray(msg.data)) updateUnknownRawBytes(dgn, msg.data);
+      updateEventStatus();
+      render();
+    }
+
+    function applyField(msg) {
+      const dgn = msg.dgn;
+      const inst = instanceKey(msg.instance);
+      const f = msg.field || {};
+      const name = f.name || 'value';
+
+      if (!dgnRows[dgn]) {
+        dgnRows[dgn] = {dgn: dgn, name: msg.dgn_name || '', enabled: true, active: true, count: 0, instances: {}, sourceIds: [], rawBytes: null, unknown: false};
+      }
+
+      dgnRows[dgn].name = msg.dgn_name || dgnRows[dgn].name;
+      dgnRows[dgn].enabled = true;
+      dgnRows[dgn].active = true;
+      addSourceId(dgnRows[dgn], msg.source_id);
+
+      if (!dgnRows[dgn].instances[inst]) {
+        dgnRows[dgn].instances[inst] = {instance: inst, source_id: normalizeSourceId(msg && msg.source_id), fields: {}};
+      }
+
+      dgnRows[dgn].instances[inst].fields[name] = f;
+
+      if (msg.changed) {
+        latchedFieldChanges[fieldKey(dgn, inst, name)] = true;
+        markDgnChanged(dgn);
+      }
+
+      fieldEventCount++;
+      updateEventStatus();
+      render();
+    }
+
+    function updateDiagStatus(diag) {
+      const el = document.getElementById('diagStatus');
+      if (!el) return;
+      window.lastDiag = diag;
+      if (!diag) {
+        el.textContent = 'ESP32: diagnostics unavailable';
+        return;
+      }
+      el.textContent = 'ESP32: heap ' + diag.free_heap + ' B free, min ' + diag.min_free_heap +
+        ' B | RX ' + diag.rx_fps + ' fps | RX task load ' + diag.rx_task_load_pct +
+        '% | RX queue ' + diag.rx_queue + ' | WS queue ' + diag.ws_queue +
+        ' | dropped ' + diag.rx_dropped + ' | render ' + lastRenderMs.toFixed(1) + ' ms';
+    }
+
+    function snapshotSignature(snapshot) {
+      let activeSig = '';
+      if (Array.isArray(snapshot.active)) {
+        activeSig = snapshot.active.map(function(a) {
+          const dataSig = Array.isArray(a.data) ? ':' + a.data.slice(0, 8).join(',') : '';
+          return String(a.dgn) + ':' + String(a.count || 0) + ':' + String(a.source_id || '') + dataSig;
+        }).join('|');
+      }
+      const statesLen = Array.isArray(snapshot.states) ? snapshot.states.length : 0;
+      return String(snapshot.mode) + ':' + String(snapshot.seq) + ':' + statesLen + ':' + activeSig;
+    }
+
+    function applySnapshot(snapshot) {
+      if (!snapshot || snapshot.ok !== true) return;
+
+      updateDiagStatus(snapshot.diag);
+      const sig = snapshotSignature(snapshot);
+      const changedSnapshot = sig !== lastSnapshotSignature;
+      lastSnapshotSignature = sig;
+      if (!changedSnapshot) return;
+
+      if (snapshot.mode === 'discovery') {
+        document.getElementById('modeStatus').textContent = 'Mode: discovering active DGNs only. Check a DGN box to decode it.';
+      } else {
+        document.getElementById('modeStatus').textContent = 'Mode: decoding selected DGNs only';
+      }
+
+      if (Array.isArray(snapshot.active)) {
+        for (const a of snapshot.active) {
+          const dgn = a.dgn;
+          if (!dgnRows[dgn]) {
+            dgnRows[dgn] = {dgn: dgn, name: a.name || '', enabled: false, active: false, count: 0, instances: {}, sourceIds: [], rawBytes: null, unknown: !!a.unknown};
+          }
+          const oldCount = dgnRows[dgn].count || 0;
+          if (!dgnRows[dgn].active) {
+            activeDgnCount++;
+            if (a.unknown) latchedUnknownDgns[dgn] = true;
+            markNewActiveDgn(dgn);
+          }
+          if (a.unknown) latchedUnknownDgns[dgn] = true;
+          dgnRows[dgn].active = true;
+          dgnRows[dgn].unknown = !!a.unknown || !!dgnRows[dgn].unknown;
+          dgnRows[dgn].name = a.name || dgnRows[dgn].name;
+          dgnRows[dgn].count = a.count || dgnRows[dgn].count;
+          addSourceId(dgnRows[dgn], a.source_id);
+          if (a.unknown && Array.isArray(a.data)) updateUnknownRawBytes(dgn, a.data);
+          if (dgnRows[dgn].count !== oldCount) markDgnChanged(dgn);
+        }
+      }
+
+      if (Array.isArray(snapshot.states)) {
+        for (const st of snapshot.states) {
+          const dgn = st.dgn;
+          const inst = instanceKey(st.instance);
+          if (!dgnRows[dgn]) {
+            dgnRows[dgn] = {dgn: dgn, name: st.dgn_name || '', enabled: true, active: true, count: 0, instances: {}, sourceIds: [], rawBytes: null, unknown: false};
+          }
+          dgnRows[dgn].name = st.dgn_name || dgnRows[dgn].name;
+          dgnRows[dgn].enabled = true;
+          dgnRows[dgn].active = true;
+          addSourceId(dgnRows[dgn], st.source_id);
+
+          if (!dgnRows[dgn].instances[inst]) {
+            dgnRows[dgn].instances[inst] = {instance: inst, source_id: normalizeSourceId(st.source_id), fields: {}};
+          } else {
+            dgnRows[dgn].instances[inst].source_id = normalizeSourceId(st.source_id);
+          }
+
+          if (Array.isArray(st.fields)) {
+            for (const f of st.fields) {
+              const name = f.name || 'value';
+              const old = dgnRows[dgn].instances[inst].fields[name];
+              if (old && old.value !== f.value) {
+                latchedFieldChanges[fieldKey(dgn, inst, name)] = true;
+                markDgnChanged(dgn);
+              }
+              dgnRows[dgn].instances[inst].fields[name] = f;
+            }
+          }
+        }
+      }
+
+      fieldEventCount = 0;
+      for (const dgn in dgnRows) {
+        for (const inst in dgnRows[dgn].instances) {
+          fieldEventCount += Object.keys(dgnRows[dgn].instances[inst].fields).length;
+        }
+      }
+
+      updateEventStatus();
+      render();
+    }
+
+    async function apiGet(path) {
+      try {
+        const response = await fetch(path, {cache: 'no-store'});
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        return await response.json();
+      } catch (e) {
+        console.log('API request failed:', path, e);
+        document.getElementById('modeStatus').textContent = 'Mode: API request failed: ' + e.message;
+        return null;
+      }
+    }
+
+    async function pollState() {
+      if (pollInFlight) return;
+      pollInFlight = true;
+      const snapshot = await apiGet('/api/state');
+      pollInFlight = false;
+      if (snapshot) applySnapshot(snapshot);
+    }
+
+    function byteText(f) {
+      const bs = Number(f.byte_start);
+      const be = Number(f.byte_end);
+      if (!Number.isFinite(bs)) return '-';
+      if (Number.isFinite(be) && be !== bs) return bs + ' - ' + be;
+      return String(bs);
+    }
+
+    function bitText(f) {
+      if (f.type !== 'bits') return '-';
+      const bs = Number(f.bit_start);
+      const be = Number(f.bit_end);
+      if (!Number.isFinite(bs) || !Number.isFinite(be)) return '-';
+      if (bs === 0 && be === 7) return '-';
+      if (bs === be) return String(bs);
+      return bs + ' - ' + be;
+    }
+
+    function valueDescription(f) {
+      if (f.value_description) return f.value_description;
+      if (f.unit) return String(f.unit).toUpperCase();
+      return '';
+    }
+
+    function sortedFields(fieldsObj) {
+      const fields = Object.values(fieldsObj || {});
+      fields.sort(function(a, b) {
+        const ab = Number(a.byte_start);
+        const bb = Number(b.byte_start);
+        if (ab !== bb) return ab - bb;
+        const abit = Number(a.bit_start);
+        const bbit = Number(b.bit_start);
+        return abit - bbit;
+      });
+      return fields;
+    }
+
+    function rawByteBitTableHtml(dgn, bytes) {
+      const data = Array.isArray(bytes) ? bytes.slice(0, 8) : [];
+      if (data.length === 0) return '<div class="muted">Waiting for raw bytes from this unknown DGN</div>';
+
+      let html = '<div class="rawTable"><table>';
+      html += '<thead><tr><th>BYTE</th><th>DECIMAL</th><th>HEX</th><th>BIT 0</th><th>BIT 1</th><th>BIT 2</th><th>BIT 3</th><th>BIT 4</th><th>BIT 5</th><th>BIT 6</th><th>BIT 7</th></tr></thead><tbody>';
+      for (let i = 0; i < data.length; i++) {
+        let value = Number(data[i]);
+        if (!Number.isFinite(value)) value = 0;
+        value = Math.max(0, Math.min(255, value | 0));
+        html += '<tr>';
+        html += '<td class="byteCol">' + i + '</td>';
+        const byteChanged = latchedUnknownRawByteChanges[dgn + '|' + i] ? ' rawChanged' : '';
+        html += '<td class="valueCol' + byteChanged + '">' + value + '</td>';
+        html += '<td class="valueCol' + byteChanged + '">0x' + value.toString(16).toUpperCase().padStart(2, '0') + '</td>';
+        for (let bit = 0; bit <= 7; bit++) {
+          const bitChanged = latchedUnknownRawBitChanges[dgn + '|' + i + '|' + bit] ? ' rawChanged' : '';
+          html += '<td class="bitCol' + bitChanged + '">' + ((value >> bit) & 1) + '</td>';
+        }
+        html += '</tr>';
+      }
+      html += '</tbody></table></div>';
+      return html;
+    }
+
+    function rawTableHtml(dgn, inst) {
+      const fields = sortedFields(inst.fields);
+      if (fields.length === 0) {
+        return '<div class="muted">No decoded field map for this DGN</div>';
+      }
+
+      let html = '<div class="rawTable"><table>';
+      html += '<thead><tr>';
+      html += '<th>BYTE</th>';
+      html += '<th>BIT</th>';
+      html += '<th>NAME</th>';
+      html += '<th>VALUE</th>';
+      html += '<th>VALUE DESCRIPTION</th>';
+      html += '</tr></thead><tbody>';
+
+      for (const f of fields) {
+        const key = fieldKey(dgn, inst.instance, f.name);
+        const changed = latchedFieldChanges[key] ? ' rawChanged' : '';
+        html += '<tr>';
+        html += '<td class="byteCol">' + esc(byteText(f)) + '</td>';
+        html += '<td class="bitCol">' + esc(bitText(f)) + '</td>';
+        html += '<td class="nameCol">' + esc(String(f.name || '').toUpperCase()) + '</td>';
+        html += '<td class="valueCol' + changed + '">' + esc(f.raw_value !== undefined ? f.raw_value : f.value) + '</td>';
+        html += '<td class="descCol' + changed + '">' + esc(valueDescription(f)) + '</td>';
+        html += '</tr>';
+      }
+
+      html += '</tbody></table></div>';
+      return html;
+    }
+
+    function applyState(data) {
+      if (!data || !data.dgns) return;
+
+      activeDgnCount = 0;
+      if (data.select_all_mode) {
+        document.getElementById('modeStatus').textContent = 'Mode: discovering active DGNs only. Check a DGN box to decode it.';
+      } else {
+        let anyEnabled = false;
+        for (const d of data.dgns) {
+          if (d.enabled) { anyEnabled = true; break; }
+        }
+        document.getElementById('modeStatus').textContent = anyEnabled ? 'Mode: decoding selected DGNs only' : 'Mode: idle';
+      }
+
+      for (const d of data.dgns) {
+        const dgn = d.dgn;
+        if (!dgnRows[dgn]) {
+          dgnRows[dgn] = {dgn: dgn, name: d.name || '', enabled: false, active: false, count: 0, instances: {}, sourceIds: [], rawBytes: null, unknown: !!d.unknown};
+        }
+
+        dgnRows[dgn].name = d.name || dgnRows[dgn].name;
+        dgnRows[dgn].enabled = !!d.enabled;
+        dgnRows[dgn].active = !!d.active;
+        const previousCount = dgnRows[dgn].count || 0;
+        dgnRows[dgn].count = d.count || 0;
+        if (dgnRows[dgn].active) activeDgnCount++;
+        if (dgnRows[dgn].active && dgnRows[dgn].count !== previousCount) markDgnChanged(dgn);
+        if (d.unknown && Array.isArray(d.data)) updateUnknownRawBytes(dgn, d.data);
+
+        const nextInstances = {};
+        for (const inst of (d.instances || [])) {
+          const ik = instanceKey(inst.instance);
+          addSourceId(dgnRows[dgn], inst.source_id);
+          nextInstances[ik] = {instance: ik, source_id: normalizeSourceId(inst.source_id), fields: {}};
+
+          for (const f of (inst.fields || [])) {
+            const name = f.name || 'value';
+            const key = fieldKey(dgn, ik, name);
+            const seq = Number(f.seq || 0);
+
+            if (knownFieldSeq[key] !== undefined && seq > knownFieldSeq[key]) {
+              latchedFieldChanges[key] = true;
+              markDgnChanged(dgn);
+            }
+            knownFieldSeq[key] = seq;
+
+            nextInstances[ik].fields[name] = f;
+          }
+        }
+
+        dgnRows[dgn].instances = nextInstances;
+      }
+
+      updateEventStatus();
+      render();
+    }
+
+
+    function render() {
+      const renderStart = performance.now();
+      let html = '';
+      const keys = Object.keys(dgnRows).sort(function(a, b) {
+        const ra = dgnRows[a];
+        const rb = dgnRows[b];
+
+        // Keep unknown DGNs grouped at the bottom for every sort mode.
+        if (!!ra.unknown !== !!rb.unknown) return ra.unknown ? 1 : -1;
+
+        if (sortMode === 'source') {
+          const cmp = sourceSortValue(ra) - sourceSortValue(rb);
+          if (cmp !== 0) return cmp;
+        } else if (sortMode === 'name') {
+          const cmp = String(ra.name || '').localeCompare(String(rb.name || ''));
+          if (cmp !== 0) return cmp;
+        }
+
+        return parseInt(a, 16) - parseInt(b, 16);
+      });
+
+      let insertedUnknownSeparator = false;
+      for (const dgn of keys) {
+        const d = dgnRows[dgn];
+        if (!rowMatchesDisplayFilter(d)) continue;
+        const dgnKey = d.dgn;
+
+        if (d.unknown && !insertedUnknownSeparator) {
+          insertedUnknownSeparator = true;
+          html += '<tr class="unknownSeparator"><td colspan="5">Unknown DGNs</td></tr>';
+        }
+
+        html += '<tr>';
+        html += '<td class="enableCell"><input class="enableBox" type="checkbox" data-dgn="' + esc(d.dgn) + '" ' + (d.enabled ? 'checked' : '') + (d.unknown ? ' disabled title="Unknown DGN has no decode map"' : '') + ' onchange="setEnable(this.dataset.dgn,this.checked)"></td>';
+        html += '<td class="dgnCell' + (latchedNewActiveDgns[dgnKey] ? ' dgnNewActive' : (latchedDgnChanges[dgnKey] ? ' dgnChanged' : '')) + '">' + esc(d.dgn) + '</td>';
+        html += '<td class="sourceCell">' + sourceHtml(d) + '</td>';
+        html += '<td class="nameCell">' + esc(d.name) + (d.unknown ? '<br><span class="muted">unknown</span>' : '') + (d.active ? '<br><span class="active">active ' + esc(d.count) + '</span>' : '') + '</td>';
+        html += '<td class="decodedCell">';
+
+        html += '<label class="rawToggle"><input type="checkbox" data-dgn="' + esc(d.dgn) + '" ' + (showRawByDgn[dgnKey] ? 'checked' : '') + ' onchange="setShowRaw(this.dataset.dgn,this.checked)">Show raw data</label>';
+
+        const instKeys = Object.keys(d.instances || {}).sort(function(a, b) {
+          const na = Number(a);
+          const nb = Number(b);
+          if (Number.isFinite(na) && Number.isFinite(nb)) return na - nb;
+          return String(a).localeCompare(String(b));
+        });
+
+        if (instKeys.length === 0) {
+          if (d.enabled) {
+            html += '<div class="muted">Waiting for selected DGN data</div>';
+          } else if (d.active && d.unknown) {
+            if (showRawByDgn[dgnKey]) {
+              html += '<div class="muted">Unknown DGN. Raw byte and bit values from the most recent frame.</div>';
+              html += rawByteBitTableHtml(d.dgn, d.rawBytes);
+            } else {
+              html += '<div class="muted">Unknown DGN. Tick Show raw data to view byte and bit values.</div>';
+            }
+          } else if (d.active) {
+            html += '<div class="muted">Active on bus. Check enable box to decode.</div>';
+          } else {
+            html += '<div class="muted">Not active / disabled</div>';
+          }
+        } else {
+          for (const ik of instKeys) {
+            const inst = d.instances[ik];
+            html += '<div class="instanceBlock">';
+            html += '<div class="instanceTitle">Instance: ' + esc(inst.instance) + '</div>';
+            html += '<div class="fields">';
+
+            const fields = sortedFields(inst.fields);
+            if (fields.length > 0) {
+              for (const f of fields) {
+                const key = fieldKey(d.dgn, inst.instance, f.name);
+                html += '<div class="field ' + (latchedFieldChanges[key] ? 'changed' : '') + '">';
+                html += '<span class="fieldName">' + esc(f.name) + ': </span>';
+                html += '<span class="fieldValue">' + esc(f.value) + '</span>';
+                html += '</div>';
+              }
+            } else {
+              html += '<div class="muted">No decoded fields</div>';
+            }
+
+            html += '</div>';
+
+            if (showRawByDgn[dgnKey]) {
+              html += rawTableHtml(d.dgn, inst);
+            }
+
+            html += '</div>';
+          }
+        }
+
+        html += '</td></tr>';
+      }
+
+      document.getElementById('tbody').innerHTML = html;
+      lastRenderMs = performance.now() - renderStart;
+      updateDiagStatus(window.lastDiag);
+    }
+
+    function updateStatus(text, ok) {
+      const el = document.getElementById('wsStatus');
+      el.textContent = 'WebSocket: ' + text;
+      el.className = ok ? 'status ok' : 'status bad';
+    }
+
+    function updateEventStatus() {
+      document.getElementById('eventStatus').textContent = 'Field events: ' + fieldEventCount + ' | Active DGNs seen: ' + activeDgnCount;
+    }
+
+    function connectWebSocket() {
+      if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+
+      const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+      ws = new WebSocket(proto + location.host + '/ws');
+
+      ws.onopen = function() {
+        updateStatus('connected', true);
+        document.getElementById('modeStatus').textContent = 'Mode: connected. Use Discover Active DGNs or select a DGN.';
+        render();
+      };
+
+      ws.onmessage = function(event) {
+        let msg = null;
+        try {
+          msg = JSON.parse(event.data);
+        } catch (e) {
+          console.log('WebSocket JSON parse error', e, event.data);
+          return;
+        }
+
+        if (msg.type === 'clear') {
+          applyClear();
+        } else if (msg.type === 'mode') {
+          applyMode(msg);
+        } else if (msg.type === 'activity') {
+          applyActivity(msg);
+        } else if (msg.type === 'field') {
+          applyField(msg);
+        }
+      };
+
+      ws.onerror = function() {
+        updateStatus('error', false);
+      };
+
+      ws.onclose = function() {
+        updateStatus('disconnected; reconnecting...', false);
+        if (reconnectTimer) clearTimeout(reconnectTimer);
+        reconnectTimer = setTimeout(connectWebSocket, 2000);
+      };
+    }
+
+    function getCommandByte(index) {
+      const el = document.getElementById('cmdB' + index);
+      const value = Number(el.value);
+      if (!Number.isInteger(value) || value < 0 || value > 255) {
+        throw new Error('Byte ' + index + ' must be decimal 0 through 255');
+      }
+      return value;
+    }
+
+    async function sendRvcCommand() {
+      const status = document.getElementById('sendStatus');
+      status.className = 'sendStatus';
+      status.textContent = 'Sending...';
+      try {
+        let dgn = document.getElementById('cmdDgn').value.trim();
+        if (!dgn) throw new Error('Enter a DGN in hex');
+        dgn = dgn.replace(/^0x/i, '');
+        if (!/^[0-9a-fA-F]{1,5}$/.test(dgn)) throw new Error('DGN must be hex, for example 1FEDB');
+        const params = new URLSearchParams();
+        params.set('dgn', dgn);
+        for (let i = 0; i < 8; i++) params.set('b' + i, String(getCommandByte(i)));
+        const response = await fetch('/api/rvc/send?' + params.toString(), { cache: 'no-store' });
+        const text = await response.text();
+        if (!response.ok) throw new Error(text || response.statusText);
+        let data = {};
+        try { data = JSON.parse(text); } catch (e) {}
+        status.className = 'sendStatus ok';
+        status.textContent = 'Sent ' + (data.can_id || 'RV-C frame');
+      } catch (err) {
+        status.className = 'sendStatus bad';
+        status.textContent = err.message || String(err);
+      }
+    }
+
+    initCatalog();
+    connectWebSocket();
+    pollState();
+    setInterval(pollState, 1000);
+    refreshWifiStatus();
+    setInterval(refreshWifiStatus, 5000);
+
+
+    function updateStickyOffsets() {
+      const top = document.querySelector('.stickyControls');
+      const height = top ? Math.ceil(top.getBoundingClientRect().height) : 0;
+      document.documentElement.style.setProperty('--sticky-top', height + 'px');
+      document.body.style.setProperty('--sticky-top', height + 'px');
+    }
+
+    window.addEventListener('resize', updateStickyOffsets);
+    window.addEventListener('load', updateStickyOffsets);
+</script>
+</body>
+</html>
