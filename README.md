@@ -22,7 +22,11 @@ This was developed for the ESP-IDF and can be compiled with the ESP-IDF tools or
 ## Use
 On first use, connect to the *sniffer* access point.
 
-## Development
+## Known Issues
+WiFi connectivity is buggy and may require a couple connection attempts
+
+## Roadmap
+Additional decoding with conversions as needed to proper formats
 
 ## Screen Shots
 
