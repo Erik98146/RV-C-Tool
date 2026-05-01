@@ -33,7 +33,7 @@ Additional decoding with conversions as needed to proper formats
 ### Discover Active DGN's (yellow=changed data. orange=new DGN)
 ![Web Dashboard 1](https://github.com/Erik98146/RV-C-Tool/blob/main/images/snap1.jpg?raw=true)   
 
-### Show detailed DGN data (decoded and raw)
+### Show detailed DGN data (decoded and raw.  Yellow=changed data)
 ![Web Dashboard 1](https://github.com/Erik98146/RV-C-Tool/blob/main/images/snap2.jpg?raw=true)  
 
 
