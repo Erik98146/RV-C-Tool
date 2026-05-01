@@ -20,7 +20,7 @@ https://copperhilltech.com/esp32-wifi-bluetooth-classic-ble-can-bus-module/
 This was developed for the ESP-IDF and can be compiled with the ESP-IDF tools or from within VS Code (after ESP-IDF has been properly installed).  **Be sure to setup the ESP-IDF (and/or the tool from within VS Code) for websocket server support before compiling.**
 
 ## Use
-On first use, connect to the *sniffer* access point.
+On first use, connect to the *rvc-tools* access point. Point your web browser to 192.168.4.1  You can then interact directly, or use the network config to join the tool to an access point. Once connected, it will tell you the new IP address you can use to find it.
 
 ## Known Issues
 WiFi connectivity is buggy and may require a couple connection attempts
