@@ -12,8 +12,8 @@ https://copperhilltech.com/esp32-wifi-bluetooth-classic-ble-can-bus-module/
 - Displays raw data in the same byte format as used in the official [RV-C specification](https://www.rvia.org/media/8401)
 - Sorts and filters messages
 - Discovers and lists RV-C devices on the bus
-- Highlights DGN's with changed/updated data
-- Highlights newly discovered DGN's
+- Highlights DGN's with changed/updated data (in yellow)
+- Highlights newly discovered DGN's (in orange)
 - Hosts a WiFi access point, or can join an existing network using a web based GUI
 - Sends commands in the same byte format as the official RV-C specification
 
