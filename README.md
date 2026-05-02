@@ -48,14 +48,14 @@ There are several ways to flash the firmware onto the board:
 5. Flash firware - **Replace COM5 with the correct com port:**  ```python -m esptool --chip esp32 --port COM5 --baud 460800 write_flash 0x0 rvc-tool-firmware.bin```
 
 ## Use
-On first use, connect to the *rvc-tools* access point. Point your web browser to ```192.168.4.1```  You can then interact directly, or use the network config to join the tool to an access point. Once connected, it will tell you the new IP address you can use to find it on that lan. Both the built-in AP and the client connection will remain active with the clinet connection credentials saved in NV ram.
+On first use, connect to the ```rvc-tools``` access point. Point your web browser to ```192.168.4.1```  You can then interact directly, or use the network config button to join the tool to an access point. Once connected to an access point, it will display the new IP address you can use to find it on that lan. Both the built-in AP and the client connection will remain active with the clinet connection credentials saved in NV ram.
 
 ## Compiling notes (optional)
 This was developed for the ESP-IDF and can be compiled with the ESP-IDF tools or from within VS Code (after ESP-IDF has been properly installed).  **Be sure to setup the ESP-IDF (and/or the tool from within VS Code) for ```websocket server support``` before compiling.**
 
 ## Known Issues
-Initial WiFi connection may require a couple attempts
-Some decoded data conversions are not yet implemented. Raw data displayed is always correct.
+Initial WiFi connection may require more than one attempt
+Some decoded data conversions are not yet implemented, however, raw data displayed is always correct.
 
 ## Roadmap
 - Additional decoding with conversions as needed to proper formats
