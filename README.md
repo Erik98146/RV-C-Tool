@@ -23,11 +23,10 @@ Download the firmware file above.
 There are several ways to flash the firmware onto the board:
 
 ### Option A - Web Tool
-1. Connect the board over USB and find the com port from the device manager
+1. Connect to the board with USB
 2. Use the web based ESP tool to flash the firmware:  https://esptool.spacehuhn.com/
 3. Select the port
-4. Select the firmware file
-5. Set the address to 0x0
+4. Set an address of ```0x0``` and select the firmware for that address
 6. Start
 
 ### Option B - Espressif Flash Download Tool
