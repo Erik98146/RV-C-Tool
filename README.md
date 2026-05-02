@@ -54,8 +54,8 @@ On first use, connect to the ```rvc-tools``` access point. Point your web browse
 This was developed for the ESP-IDF and can be compiled with the ESP-IDF tools or from within VS Code (after ESP-IDF has been properly installed).  **Be sure to setup the ESP-IDF (and/or the tool from within VS Code) for ```websocket server support``` before compiling.**
 
 ## Known Issues
-Initial WiFi connection may require more than one attempt
-Some decoded data conversions are not yet implemented, however, raw data displayed is always correct.
+- Initial WiFi connection may require more than one attempt
+- Some decoded data conversions are not yet implemented, however, raw data displayed is always correct.
 
 ## Roadmap
 - Additional decoding with conversions as needed to proper formats
