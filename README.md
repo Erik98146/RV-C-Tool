@@ -1,6 +1,6 @@
 # RV-C-Tool
  
-This is a basic web based tool for sniffing the RV-C bus, decoding status and commands, tracking changes, and sending commands.  It was developed for the SK Pang Electronics ESP32 CAN-Bus module distributed by Copper Hill Technologies in the US:  
+This is a basic web based tool for sniffing the RV-C bus, decoding status and commands, tracking changes, and sending commands back to the RV-C bus.  It was developed for the SK Pang Electronics ESP32 CAN-Bus module distributed by Copper Hill Technologies in the US:  
 
 https://copperhilltech.com/esp32-wifi-bluetooth-classic-ble-can-bus-module/
 
