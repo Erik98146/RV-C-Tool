@@ -45,7 +45,7 @@ There are several ways to flash the firmware onto the board:
 2. Install esptool ```pip install esptool```
 3. Connect the board with USB-C and find the com port from the device manager
 4. Open a command prompt and navigate to the folder with the firmware that you downloaded
-5. Flash firware **Replace COM5 with the correct com port**  ```python -m esptool --chip esp32 --port COM5 --baud 460800 write_flash 0x0 merged-binary.bin```
+5. Flash firware **Replace COM5 with the correct com port**  ```python -m esptool --chip esp32 --port COM5 --baud 460800 write_flash 0x0 rvc=tool=firmware.bin```
 
 ## Use
 On first use, connect to the *rvc-tools* access point. Point your web browser to ```192.168.4.1```  You can then interact directly, or use the network config to join the tool to an access point. Once connected, it will tell you the new IP address you can use to find it.
