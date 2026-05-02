@@ -64,9 +64,12 @@ Initial WiFi connection may require a couple attempts
 ## Screen Shots
 
 ### Discover Active DGN's (yellow=changed data. orange=new DGN)
-![Web Dashboard 1](https://github.com/Erik98146/RV-C-Tool/blob/main/images/snap1.jpg?raw=true)   
+![Web Dashboard 1](https://raw.githubusercontent.com/Erik98146/RV-C-Tool/refs/heads/main/images/cap1.png)
 
 ### Show detailed DGN data (decoded and raw.  Yellow=changed data)
-![Web Dashboard 1](https://github.com/Erik98146/RV-C-Tool/blob/main/images/snap2.jpg?raw=true)  
+![Web Dashboard 2](https://raw.githubusercontent.com/Erik98146/RV-C-Tool/refs/heads/main/images/cap2.png)
+
+### Show unknown DGN's (Raw bits.  Yellow=changed data)
+![Web Dashboard 3](https://raw.githubusercontent.com/Erik98146/RV-C-Tool/refs/heads/main/images/cap3.png)
 
 
