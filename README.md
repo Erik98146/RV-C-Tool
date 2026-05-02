@@ -19,15 +19,33 @@ https://copperhilltech.com/esp32-wifi-bluetooth-classic-ble-can-bus-module/
 
 ## Installing
 
-### Prerequisites:
+Download the firmware file above.  
+There are several ways to flash the firmware onto the board:
+
+### Option A - Web Tool
+1. Connect the board over USB and find the com port from the device manager
+2. Use the web based ESP tool to flash the firmware:  https://esptool.spacehuhn.com/
+3. Select the port
+4. Select the firmware file
+5. Set the address to 0x0
+6. Start
+
+### Option B - Espressif Flash Download Tool
+1. Download the espressif Flash Download Tool: https://docs.espressif.com/projects/esp-test-tools/en/latest/esp32/production_stage/tools/flash_download_tool.html
+2. Set the chip type to ```ESP32```
+3. Set the Work Mode to ```Develop```
+4. Set Load Mode to ```UART```
+5. Select the firmware file downloaded above
+6. Enter Flash Address ```0x0```
+7. Select Baud Rate ```460800```
+8. Start
+
+### Option C - Manual:
 1. Install Python 3.10 or newer (check the box to add Python to PATH)
 2. Install esptool ```pip install esptool```
-3. Download firmware file above
-
-### Flashing:
-1. Connect the board with USB-C and find the com port from the device manager
-2. Open a command prompt and navigate to the folder with the firmware that you downloaded
-3. Flash firware **Replace COM5 with the correct com port**  ```python -m esptool --chip esp32 --port COM5 --baud 460800 write_flash 0x0 merged-binary.bin```
+3. Connect the board with USB-C and find the com port from the device manager
+4. Open a command prompt and navigate to the folder with the firmware that you downloaded
+5. Flash firware **Replace COM5 with the correct com port**  ```python -m esptool --chip esp32 --port COM5 --baud 460800 write_flash 0x0 merged-binary.bin```
 
 ## Use
 On first use, connect to the *rvc-tools* access point. Point your web browser to ```192.168.4.1```  You can then interact directly, or use the network config to join the tool to an access point. Once connected, it will tell you the new IP address you can use to find it.
