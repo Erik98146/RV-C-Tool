@@ -56,10 +56,10 @@ This was developed for the ESP-IDF and can be compiled with the ESP-IDF tools or
 Initial WiFi connection may require a couple attempts
 
 ## Roadmap
-Additional decoding with conversions as needed to proper formats
-Add new DGN's
-Save/Label unknown DGN's
-Label instances
+- Additional decoding with conversions as needed to proper formats
+- Add new DGN's
+- Save/Label unknown DGN's
+- Label instances
 
 ## Screen Shots
 
