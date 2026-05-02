@@ -39,7 +39,7 @@ There are several ways to flash the firmware onto the board:
 7. Select Baud Rate ```460800```
 8. Start
 
-### Option C - Manual:
+### Option C - Command Line:
 1. Install Python 3.10 or newer (check the box to add Python to PATH)
 2. Install esptool ```pip install esptool```
 3. Connect the board with USB-C and find the com port from the device manager
