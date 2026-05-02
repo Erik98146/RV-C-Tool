@@ -17,11 +17,23 @@ https://copperhilltech.com/esp32-wifi-bluetooth-classic-ble-can-bus-module/
 - Hosts a WiFi access point, or can join an existing network using a web based GUI
 - Sends commands in the same byte format as the official RV-C specification
 
-## Compiling
-This was developed for the ESP-IDF and can be compiled with the ESP-IDF tools or from within VS Code (after ESP-IDF has been properly installed).  **Be sure to setup the ESP-IDF (and/or the tool from within VS Code) for ```websocket server support``` before compiling.**
+## Installing
+
+### Prerequisites:
+1. Install Python 3.10 or newer (check the box to add Python to PATH)
+2. Install esptool ```pip install esptool```
+3. Download firmware file above
+
+### Flashing:
+1. Connect the board with USB-C and find the com port from the device manager
+2. Open a command prompt and navigate to the folder with the firmware that you downloaded
+3. Flash firware **Replace COM5 with the correct com port**  ```python -m esptool --chip esp32 --port COM5 --baud 460800 write_flash 0x0 merged-binary.bin```
 
 ## Use
 On first use, connect to the *rvc-tools* access point. Point your web browser to ```192.168.4.1```  You can then interact directly, or use the network config to join the tool to an access point. Once connected, it will tell you the new IP address you can use to find it.
+
+## Compiling (optional)
+This was developed for the ESP-IDF and can be compiled with the ESP-IDF tools or from within VS Code (after ESP-IDF has been properly installed).  **Be sure to setup the ESP-IDF (and/or the tool from within VS Code) for ```websocket server support``` before compiling.**
 
 ## Known Issues
 Initial WiFi connection may require a couple attempts
