@@ -58,9 +58,9 @@ The logger can capture all frames on the wire, even 11-bit non RV-C proprietary 
 ## Compiling notes (optional)
 This was developed for the ESP-IDF and can be compiled with the ESP-IDF tools or from within VS Code (after ESP-IDF has been properly installed).  **Be sure to setup the ESP-IDF (and/or the tool from within VS Code) for ```websocket server support``` before compiling.**
 
-##Changes
+## Changes
 
-#v2.0.0
+# v2.0.0
 - Increased polling speed
 - Improved Wi-Fi reliability
 - Added logger with csv output (incl non rv-c frames) 
