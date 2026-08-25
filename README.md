@@ -31,6 +31,8 @@ There are several ways to flash the firmware onto the board:
 4. Set an address of ```0x0``` and select the firmware for that address
 6. Start
 
+Or use the ESP Tool: https://espressif.github.io/esptool-js/
+
 ### Option B - Espressif Flash Download Tool
 1. Download the espressif Flash Download Tool: https://docs.espressif.com/projects/esp-test-tools/en/latest/esp32/production_stage/tools/flash_download_tool.html
 2. Set the chip type to ```ESP32```
