@@ -1,0 +1,465 @@
+@font-face {
+  font-family: 'Inter';
+  src: url('/inter.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+  --bg:#09090b;
+  --bg-soft:#0b0c10;
+  --panel:#18181b;
+  --panel-2:#111114;
+  --card:#18181b;
+  --card-deep:#09090b;
+  /* The neutral ramp above is Tailwind zinc (950/900/500/400/300/100). These
+     fill in the three steps that were missing, which is why pages that needed
+     a raised surface or a button fill invented their own off-palette grays
+     (#222 / #333 / #444 / #555 in rvc-tools.html) — pure neutrals against a
+     blue-tinted zinc ramp, which is what made that page read as a different
+     product. Semantic names rather than zinc-N so call sites say what they
+     mean. */
+  --surface-raised:#27272a;         /* zinc-800 — inputs/chips above a panel */
+  --surface-control:#3f3f46;        /* zinc-700 — button fills */
+  --surface-control-hover:#52525b;  /* zinc-600 */
+  --line:rgba(var(--wash-rgb),.10);
+  --line-strong:rgba(var(--wash-rgb),.16);
+  --muted:#a1a1aa;
+  --muted-2:#71717a;
+  --text:#f4f4f5;
+  --subtle:#d4d4d8;
+  --sky:#38bdf8;
+  --sky-soft:#0ea5e9;
+  --sky-deep:#0284c7;   /* pressed/hover under a --sky-soft fill */
+  --sky-dim:rgba(14,165,233,.15);
+  --green:#34d399;
+  --red:#f87171;
+  --amber:#fbbf24;
+  --orange:#fb923c;   /* distinct from amber: "newly appeared", not "changed" */
+  /* The one deliberate off-ramp colour: the Wi-Fi signal meter needs four
+     ordered steps (excellent/good/fair/poor) and green->amber->red only gives
+     three, so "good" sits between green and amber. Tokenised rather than
+     removed — it is a real fourth step, not accidental drift. */
+  --lime:#a3e635;
+  --shadow:0 20px 55px rgba(var(--scrim-rgb),.26);
+  /* Control-scale radii. The existing --radius-* tokens below only ever
+     covered the large end, so small controls each picked their own value:
+     buttons at 6/7/9px, inputs at 6/9px, badges at 6/9px, rows at 10/13/14px —
+     the same component type rendering three different corner radii depending
+     on which page it was on. Three steps replace seven ad-hoc values.
+     Pills (999px), circles (50%), hairlines (1-5px) and the card radius (16px)
+     are deliberate and stay as they are. */
+  --r-sm:8px;    /* buttons, inputs, badges, menu items */
+  --r-md:12px;   /* inner panels, list rows, segmented controls */
+  --r-lg:16px;   /* cards */
+  --radius-xl:18px;
+  --radius-2xl:24px;
+  --radius-3xl:28px;
+
+  /* ── Themeable surface + state tokens (Phase 0, 2026-08-07) ──────────────
+     Everything a theme has to repaint, named in one place. Values here are
+     byte-identical to the literals they replaced, so this pass is purely a
+     refactor -- see theme0_test.js, which resolves each token back and
+     compares the whole file against a pre-conversion baseline.
+
+     Glow colours are stored as bare RGB TRIPLES, not rgba(): the same hue is
+     reused at five different alphas across border/ring/halo/breathe, so a
+     triple lets a theme restate one value instead of twenty rgba literals,
+     and keeps the alpha relationships (which are tuned, see the Dashboard
+     Visual Language notes) out of a theme's hands. */
+  --card-surface:linear-gradient(180deg,#191a1d 0%,#0a0b0d 100%);
+  --card-shadow:0 22px 58px rgba(var(--scrim-rgb),.22);
+  /* Depth under a glowing card. Deliberately separate from --card-shadow:
+     the glow rules replace the drop shadow rather than adding to it. */
+  --card-shadow-lifted:0 6px 40px rgba(var(--scrim-rgb),.22);
+
+  /* State hues. amber = generic "on", sky = AC/climate + the Water Pump
+     variant, green = shore power, heat = burnt orange (thermostat heat,
+     tank heaters). */
+  --glow-amber-rgb:251,191,36;
+  --glow-sky-rgb:56,189,248;
+  /* Water Pump's blue, and ONLY the Water Pump's. Held identical in every
+     theme by design — no [data-theme] block overrides it — so the pump card
+     looks the same wherever you are. It drives the icon tint, the glow ring
+     and the breathing keyframes from one triple, which is what stops the icon
+     and the ring drifting to two different blues. Kept equal to the DEFAULT
+     theme's --sky (#38bdf8); it is a separate token precisely so the themed
+     accent can move without dragging the pump along. */
+  --pump-rgb:56,189,248;
+  --glow-green-rgb:74,222,128;
+  --glow-heat-rgb:204,85,0;
+  /* Halo intensity multiplier for the state glows. 1 = the default
+     bloom; a flat theme sets 0 to keep the 1px ring and tinted border
+     while dropping the 18-92px halo. Multiplies the halo ALPHAS only,
+     so the geometry is untouched and nothing reflows. */
+  --glow-halo:1;
+
+  /* Tank fills. NOTE these composite over --tank-track-*: the water value was
+     back-computed so it lands on the reference's #105693 once composited, so
+     changing a track brightness shifts the fill too (documented trap). */
+  --tank-water:rgba(13,140,249,.55);
+  --tank-waste:rgba(120,60,10,.7);
+  --tank-grey:rgba(130,130,130,.45);
+  --tank-lpg:rgba(16,185,129,.55);
+  --tank-fuel:rgba(200,120,30,.6);
+  --tank-track:rgba(var(--wash-rgb),.12);
+  --tank-track-dark:rgba(var(--wash-rgb),.04);
+
+  /* Neutral washes and scrims, as RGB triples (Phase 0 checkpoint 2).
+     Every hairline, hover wash and overlay on the dashboard is white or black
+     at some alpha over the surface. Stored as one triple each so a theme
+     shifts ALL of them coherently -- a blue-tinted theme warms every hairline
+     by restating --wash-rgb once, and a light theme would swap wash and scrim
+     rather than hunting thirty literals. Alphas stay at each use site: they
+     encode depth relationships, not palette. */
+  --wash-rgb:255,255,255;
+  --scrim-rgb:0,0,0;
+  --bg-rgb:9,9,11;
+
+  /* Accents, control surfaces and neutrals (Phase 0 checkpoint 3).
+     The last of the values a theme has to repaint. Semantic status colours
+     (danger red / success green / warning amber pills) are deliberately NOT
+     here: those mean the same thing in every theme, so tokenising them would
+     be tidiness rather than theming capability, and would invite a theme to
+     make an error message stop looking like one. */
+  --sky-soft-rgb:14,165,233;      /* --sky-soft as a triple, for its washes */
+  --accent-ice:#7dd3fc;           /* sky-300: active icon button glyph */
+  --accent-ice-soft:#e0f2fe;      /* sky-100: text on an active segmented button */
+  --accent-rose:#fb7185;          /* warm stop of the thermostat dial gradient */
+  --accent-slate:#cbd5e1;         /* neutral mid stop of that same gradient */
+  --accent-magenta:#e879f9;       /* Sleep Timer, armed */
+  --accent-cyan:#22d3ee;          /* panel header temperature readout */
+  --surface-input:#202023;        /* form control fill */
+  --surface-control-2:#323238;    /* segmented/thermostat button hover */
+  --dial-center:#141417;          /* thermostat dial radial gradient, centre */
+  --dial-edge:#0a0b0d;            /* ...and its outer edge */
+  --on-accent:#fff;               /* text/icon on a filled accent */
+  --text-bright:#e4e4e7;          /* zinc-200: mini values, toast copy */
+  --muted-3:#555;                 /* dimmer than --muted-2: an unarmed status dot */
+}
+/* ── Theme 1: Slate (flat blue) ───────────────────────────────────────────
+   Renamed from "Midnight" 2026-08-07 -- the label moved to theme 0 to match
+   how the user actually refers to these two in conversation, this block
+   (data-theme="1") and everything below it is unchanged.
+   Overrides only. Anything not restated here keeps its default value, which
+   is why Phase 0 mattered: every value a theme needs is a token, so a theme
+   is a list of substitutions rather than a parallel stylesheet.
+
+   Two things make this a FLAT look rather than a recolour:
+     --card-surface is a solid fill, not a gradient
+     --glow-halo is 0, so the state glows keep their 1px ring and tinted
+       border but drop the 18-92px bloom. The halo geometry is untouched;
+       only its alpha is multiplied out, so nothing reflows.
+
+   The neutral ramp is blue-tinted rather than zinc, and --wash-rgb carries
+   that tint into every hairline and hover wash at once. */
+:root[data-theme="1"] {
+  /* Page + surfaces */
+  --bg:#0a0e17;
+  --bg-soft:#0c1119;
+  --panel:#151b28;
+  --panel-2:#111622;
+  --card:#151b28;
+  --card-deep:#0a0e17;
+  --surface-raised:#1c2434;
+  --surface-control:#243043;
+  --surface-control-hover:#2e3c52;
+  --surface-control-2:#2e3c52;
+  --surface-input:#111825;
+
+  /* Flat card: a solid fill, and a shallower shadow to match. */
+  --card-surface:#151b28;
+  --card-shadow:0 10px 30px rgba(2,5,12,.45);
+  --card-shadow-lifted:0 4px 18px rgba(2,5,12,.4);
+
+  /* Hairlines and washes pick up the blue. One triple does every border,
+     hover state and divider on every page, including --line/--line-strong. */
+  --wash-rgb:150,178,224;
+  --scrim-rgb:2,5,12;
+  --bg-rgb:10,14,23;
+
+  /* Text */
+  --text:#eef2fa;
+  --subtle:#c7d3e6;
+  --text-bright:#dbe4f2;
+  --muted:#8d9dba;
+  --muted-2:#61718f;
+  --muted-3:#465570;
+
+  /* Accent: indigo-leaning blue rather than sky cyan. */
+  --sky:#6f9bff;
+  --sky-soft:#4c7ae8;
+  --sky-deep:#3a60c4;
+  --sky-dim:rgba(76,122,232,.18);
+  --sky-soft-rgb:76,122,232;
+  --accent-ice:#9dc0ff;
+  --accent-ice-soft:#dbe7ff;
+  --accent-cyan:#63b8e8;
+
+  /* State hues, pulled toward the same family so "on" reads as part of the
+     theme rather than borrowed from the dark one. Heat stays orange: it is
+     the one state whose meaning depends on the colour. */
+  /* Deliberately the SAME triple as --sky above (#6f9bff), not the deeper
+     --sky-soft. The Water Pump card tints its icon with var(--sky) while its
+     glow ring uses this, so two different blues made one card read as two
+     colours. Keeping them identical also means the thermostat's ac-on glow,
+     the climate mode buttons and the lighting on-buttons all land on the
+     theme's one accent blue. */
+  --glow-sky-rgb:111,155,255;
+  --glow-amber-rgb:232,168,62;
+  --glow-green-rgb:74,201,146;
+  --glow-halo:0;               /* flat: ring + border only, no bloom */
+
+  /* Tanks. ⚠ These composite over the track, so they had to be re-derived
+     rather than copied: --tank-track is white at 12% over a NAVY card here,
+     not over zinc, so the same fill alpha lands on a different colour. */
+  --tank-water:rgba(64,146,240,.6);
+  --tank-waste:rgba(146,84,32,.68);
+  --tank-grey:rgba(132,146,168,.42);
+  --tank-lpg:rgba(38,190,150,.55);
+  --tank-fuel:rgba(206,134,52,.6);
+
+  /* Thermostat dial: flat centre, no radial depth. */
+  --dial-center:#182031;
+  --dial-edge:#0e1420;
+}
+/* ── Theme 2: Gray ────────────────────────────────────────────────────────
+   Overrides only, same mechanism as Slate (data-theme="1") -- but this one does NOT
+   retint the neutral ramp. Sourced from the panel-edit header
+   (#panelEditBar's .phwCard/.phwRow, index.html): that surface is already
+   pure, untinted zinc gray (--surface-raised, --line, --text, --muted, all
+   unchanged from :root above), so there is no hue to carry anywhere -- only
+   the FLAT treatment is new. --wash-rgb/--scrim-rgb/--bg-rgb and every
+   neutral/text/accent token are deliberately left unset here and just
+   inherit :root's own values.
+
+   --card-surface is literally --surface-raised's value (#27272a) -- the
+   panel-edit header's own box colour -- so a themed dashboard's cards read
+   as the same raised-gray surface as that header, flat instead of
+   Default's dark top-to-bottom gradient. Tank fills and the thermostat
+   dial are untouched: unlike Slate's hue shift, a lightness-only change
+   here doesn't make their existing wash-based composites look wrong. */
+:root[data-theme="2"] {
+  --card-surface:#27272a;
+  --card-shadow:0 10px 30px rgba(var(--scrim-rgb),.4);
+  --card-shadow-lifted:0 4px 18px rgba(var(--scrim-rgb),.35);
+  --glow-halo:0;               /* flat: ring + border only, no bloom */
+}
+
+/* ── Nightfall (data-theme="3") ──────────────────────────────────────────────
+   Midnight with the card surfaces taken away. Every neutral, text, accent and
+   glow token is deliberately left unset so it inherits :root -- this is
+   Midnight, so the amber/sky/green state hues and the glow bloom
+   (--glow-halo stays 1) are exactly Midnight's.
+
+   What changes is that a card stops being an object: --card-surface becomes a
+   FLAT var(--bg), the same colour the page itself is painted, and both drop
+   shadows go. With no fill, no gradient and no shadow, the only thing that
+   could still outline a tile is its 1px border -- so the rules below remove
+   that too, except on the handful of device types worth finding at a glance.
+
+   ⚠ --card-surface is var(--bg), not a literal #09090b, so a future change to
+   the page background carries the cards with it rather than leaving them
+   floating a shade off. */
+:root[data-theme="3"] {
+  --card-surface:var(--bg);
+  --card-shadow:none;
+  --card-shadow-lifted:none;
+}
+
+/* Borderless by default. Scoped with :not() on the glow classes rather than
+   simply out-specifying them: a glow is state ("this device is ON"), not
+   decoration, and every other theme shows it. Excluding glowing tiles here
+   means the .cardTile.on / .ac-on / .shore-on rules apply unopposed instead of
+   being beaten on specificity, so no theme can silently hide a device's state. */
+:root[data-theme="3"] .cardTile:not(.on):not(.ac-on):not(.shore-on) {
+  border-color:transparent;
+}
+/* The exceptions: Inverter (3) and its Victron MultiPlus equivalent (15),
+   Water Pump (26) and Starlink (27) keep a visible edge even when off. These
+   are the switchable appliances -- the same four types lc_card_timer.h accepts
+   for a long-press off-timer -- so they stay findable on a panel where
+   everything else has dissolved into the background. Needs data-card-type,
+   stamped by tagCardTypes() in index.html. */
+:root[data-theme="3"] .cardTile:not(.on):not(.ac-on):not(.shore-on)[data-card-type="3"],
+:root[data-theme="3"] .cardTile:not(.on):not(.ac-on):not(.shore-on)[data-card-type="15"],
+:root[data-theme="3"] .cardTile:not(.on):not(.ac-on):not(.shore-on)[data-card-type="26"],
+:root[data-theme="3"] .cardTile:not(.on):not(.ac-on):not(.shore-on)[data-card-type="27"] {
+  border-color:var(--line);
+}
+/* Hover would otherwise re-outline every borderless tile. Keep the cue only
+   where a border is part of the design. */
+:root[data-theme="3"] .cardTile:not(.on):not(.ac-on):not(.shore-on):hover {
+  border-color:transparent;
+  box-shadow:none;
+}
+:root[data-theme="3"] .cardTile:not(.on):not(.ac-on):not(.shore-on)[data-card-type="3"]:hover,
+:root[data-theme="3"] .cardTile:not(.on):not(.ac-on):not(.shore-on)[data-card-type="15"]:hover,
+:root[data-theme="3"] .cardTile:not(.on):not(.ac-on):not(.shore-on)[data-card-type="26"]:hover,
+:root[data-theme="3"] .cardTile:not(.on):not(.ac-on):not(.shore-on)[data-card-type="27"]:hover {
+  border-color:rgba(var(--wash-rgb),.16);
+}
+
+* { box-sizing:border-box; }
+html { background:var(--bg); }
+body {
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at top left, rgba(14,165,233,.10), transparent 34rem),
+    linear-gradient(180deg,#09090b 0%,#09090b 44%,#050507 100%);
+  color:var(--text);
+  font-family:'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+/* SVG icon utility */
+.mi {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:1.25em;
+  height:1.25em;
+  vertical-align:middle;
+  flex-shrink:0;
+  margin-right:7px;
+}
+.mi svg { width:100%; height:100%; fill:currentColor; }
+
+/* Nav */
+.pageToolbar {
+  position:sticky;
+  top:0;
+  z-index:50;
+  min-height:66px;
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:center;
+  gap:18px;
+  padding:12px max(18px,calc((100vw - 1280px)/2 + 18px));
+  border-bottom:1px solid var(--line);
+  background:rgba(24,24,27,.84);
+  backdrop-filter:blur(14px);
+  box-shadow:0 10px 35px rgba(var(--scrim-rgb),.18);
+}
+.brandBlock { display:flex; align-items:center; gap:12px; min-width:0; }
+.brandMark {
+  width:50px;
+  height:50px;
+  border-radius:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#7dd3fc;
+  background:rgba(14,165,233,.18);
+  box-shadow:0 16px 35px rgba(14,165,233,.13);
+  flex:0 0 auto;
+}
+.brandName { font-size:1.26rem; line-height:1.1; font-weight:780; letter-spacing:-.025em; }
+.brandLaunch { color:var(--sky); }
+.brandControl { color:#fff; }
+.brandSub { margin-top:2px; font-size:.86rem; color:var(--muted); }
+.navLinks { display:flex; align-items:center; gap:8px; }
+.navLinks .mi { width:1.5em; height:1.5em; margin-right:8.4px; }
+.pageToolbar a {
+  display:inline-flex;
+  align-items:center;
+  gap:1px;
+  border-radius:var(--r-md);
+  padding:10px 12px;
+  color:#a1a1aa;
+  text-decoration:none;
+  font-size:1.08rem;
+  font-weight:580;
+  transition:background .18s ease,color .18s ease;
+}
+.pageToolbar a:hover { color:#f4f4f5; background:rgba(var(--wash-rgb),.05); }
+.pageToolbar a.active { color:#bae6fd; background:rgba(14,165,233,.15); }
+.iconBox .mi { margin:0; width:1.18em; height:1.18em; }
+.brandMark .mi { margin:0; width:1.416em; height:1.416em; }
+
+/* Hamburger nav menu — shared by devices.html and rvc-tools.html (each
+   page's own destination list is built in its own JS; only the look and
+   the open/close mechanics are shared here). */
+.navMenuBtn { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:12px; border:0; background:transparent; color:var(--subtle); cursor:pointer; }
+.navMenuBtn:hover { background:rgba(var(--wash-rgb),.06); color:var(--text); }
+.navMenuBtn svg { width:20px; height:20px; fill:currentColor; }
+.navDropdown { position:fixed; background:var(--panel); border:1px solid var(--line-strong); border-radius:var(--r-md); box-shadow:var(--shadow); z-index:200; min-width:170px; padding:4px; }
+.navDropdownItem { display:flex; align-items:center; gap:8px; width:100%; border:0; background:transparent; color:var(--subtle); font-size:.92rem; font-weight:620; cursor:pointer; border-radius:var(--r-sm); padding:9px 12px; text-align:left; text-decoration:none; }
+.navDropdownItem:hover { background:rgba(var(--wash-rgb),.07); color:var(--text); }
+.navDropdownItem svg { width:16px; height:16px; fill:currentColor; flex-shrink:0; }
+
+/* Content shell */
+.shell { max-width:1280px; margin:0 auto; padding:28px 18px 34px; }
+
+/* Typography */
+h1,h2,h3,p { margin:0; }
+h1 { font-size:clamp(2rem,4vw,3rem); line-height:1.05; font-weight:760; letter-spacing:-.045em; }
+h2 { font-size:1.12rem; line-height:1.2; font-weight:720; letter-spacing:-.025em; }
+h3 { font-size:1rem; font-weight:700; letter-spacing:-.02em; }
+.sub { margin-top:6px; color:var(--muted); font-size:.92rem; line-height:1.45; }
+
+/* Utilities */
+.muted { color:var(--muted); }
+.mono { font-family:"SFMono-Regular",Consolas,monospace; white-space:nowrap; }
+.ok { color:var(--green); }
+.bad { color:var(--red); }
+
+/* Status dot */
+.dot { width:9px; height:9px; border-radius:999px; background:var(--amber); box-shadow:0 0 14px rgba(251,191,36,.45); }
+.ok .dot { background:var(--green); box-shadow:0 0 14px rgba(52,211,153,.45); }
+.bad .dot { background:var(--red); box-shadow:0 0 14px rgba(248,113,113,.45); }
+
+/* ── Toggle switch (2026-08-07) ─────────────────────────────────────────
+   Shared across all 4 pages, replacing plain checkboxes system-wide except
+   the lighting device-selection lists (lightingChecklistHtml() in
+   index.html, shared by the Lighting card's Inside/Outside/Scene lists and
+   Lighting Automation's light list) and rvc-tools.html — both left as
+   checkboxes by explicit request.
+
+   .toggleSwitch is the bare control: a <span> (not <label> — the real
+   input is position:absolute;inset:0, so it already covers the whole
+   visible track and receives clicks directly; no label wrapping is needed
+   just to make it clickable). Use this alone where the descriptive text
+   lives in a separate element (e.g. a row's own title), or nest it inside
+   a .toggleRow when the text and switch should share one click target.
+
+   The underlying element is still a real <input type=checkbox> with
+   whatever id/onchange/data-* attributes the call site gives it — every
+   existing :checked / .checked / querySelectorAll('input[type=checkbox]')
+   read in the app keeps working unchanged; only the surrounding markup and
+   paint changed. */
+.toggleSwitch { position:relative; display:inline-flex; width:40px; height:23px; flex-shrink:0; cursor:pointer; }
+.toggleSwitch input { position:absolute; inset:0; opacity:0; margin:0; cursor:pointer; }
+/* No transition on background/border-color: both are theme-token driven
+   (var(--surface-control)/var(--line-strong)), and a transitioned color fed
+   by a custom property that changes via a distant ancestor's data-theme
+   attribute (not a direct state change on this element) freezes at its
+   pre-change value instead of repainting -- confirmed on-device. The
+   thumb's transform transition below is unaffected: :checked is a direct
+   state change on the adjacent input, not an inherited one. */
+.toggleSwitchTrack { position:absolute; inset:0; background:var(--surface-control); border:1px solid var(--line-strong); border-radius:999px; pointer-events:none; }
+.toggleSwitchTrack::before { content:''; position:absolute; width:17px; height:17px; left:2px; top:2px; background:#fff; border-radius:50%; transition:transform .15s; box-shadow:0 1px 2px rgba(0,0,0,.35); }
+.toggleSwitch input:checked + .toggleSwitchTrack { background:var(--sky-soft); border-color:var(--sky-soft); }
+.toggleSwitch input:checked + .toggleSwitchTrack::before { transform:translateX(17px); }
+.toggleSwitch input:focus-visible + .toggleSwitchTrack { outline:2px solid rgba(var(--sky-soft-rgb),.4); outline-offset:2px; }
+
+/* .toggleRow: a label + switch that share one click target, replacing the
+   old `<label><input type=checkbox> Text</label>` pattern (text and
+   checkbox inside one label, clicking either toggles it). Text first,
+   switch last -- reads left to right, switch flush against whatever sits
+   to its right. Compact/inline by default; a call site that wants the
+   switch pinned to a full-width row's far edge sets width:100% and
+   justify-content:space-between itself rather than this being the default
+   (most existing call sites are short, inline settings, not full-width
+   rows). */
+.toggleRow { display:inline-flex; align-items:center; gap:8px; cursor:pointer; }
+.toggleRowText { color:var(--subtle); }
+
+@media (max-width:760px) {
+  .pageToolbar { grid-template-columns:1fr; align-items:start; }
+  .navLinks { flex-wrap:wrap; }
+}

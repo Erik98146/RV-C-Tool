@@ -1,0 +1,23 @@
+idf_component_register(
+    SRCS
+        "main.c"
+        "lc_can.c"
+        "lc_state.c"
+        "lc_rvclog.c"
+        "lc_timberline.c"
+        "rt_web.c"
+    INCLUDE_DIRS
+        "."
+        "board"
+    REQUIRES
+        esp_driver_twai
+        esp_timer
+        esp_driver_gpio
+        esp_wifi
+        esp_http_server
+        nvs_flash
+        esp_netif
+        esp_event
+        lwip
+        spiffs
+)

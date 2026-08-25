@@ -1,0 +1,17 @@
+# Stand-alone RV-C Tools — target-neutral settings. Flash size lives in
+# sdkconfig.defaults.esp32 (same split, same save-defconfig reason as every
+# LaunchControl project).
+
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# /ws delta stream
+CONFIG_HTTPD_WS_SUPPORT=y
+
+# 100 Hz tick, deliberately matching hub_core: the ported code carries the
+# hub's pdMS_TO_TICKS discipline (sub-10 ms delays use esp_rom_delay_us).
+CONFIG_FREERTOS_HZ=100
+
+# Task watchdog: panic on trigger, 30 s window — rvc_print_task subscribes.
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=30
+CONFIG_ESP_TASK_WDT_PANIC=y

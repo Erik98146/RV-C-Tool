@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <!-- Theme is applied before the stylesheet so there is no repaint flash —
+       same pattern as rvc-tools.html. -->
+  <script>
+    try {
+      var t = localStorage.getItem('lcTheme');
+      if (t && t !== '0') document.documentElement.setAttribute('data-theme', t);
+    } catch (e) { /* no stored preference; the default look is correct */ }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RV-C Tools - Network Setup</title>
+  <link rel="stylesheet" href="/common.css">
+  <style>
+    /* Carved from hub_core config.html's Network tab styles — same look,
+       trimmed to the classes this page actually uses. */
+    body { padding:0 18px 18px; }
+    .pageSection{font-size:1rem;font-weight:760;letter-spacing:-.02em;color:var(--text);margin:28px 0 12px;max-width:920px}
+    .pageSection:first-child{margin-top:0}
+    .muted{color:var(--muted)}
+    .statusGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:920px;margin-bottom:14px}
+    @media (max-width:720px){ .statusGrid{grid-template-columns:1fr} }
+    .statusCard{border:1px solid var(--line);border-radius:var(--radius-xl);background:var(--panel);padding:18px 20px}
+    .statusCard h3,.sectionCard h3{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+    .statusRow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:.95rem;gap:12px}
+    .statusRow:last-child{border-bottom:none}
+    .statusLabel{color:var(--muted);white-space:nowrap}
+    .statusValue{color:var(--text);font-weight:600;text-align:right;word-break:break-all}
+    .statusValue .dim{color:var(--muted);font-weight:400}
+    .sigWrap{display:inline-flex;align-items:center;gap:8px}
+    .sigDbm{font-size:.82rem;color:var(--muted)}
+    .sigQuality{font-size:.82rem;font-weight:700}
+    .sig-excellent{color:var(--green)}
+    .sig-good{color:var(--lime)}
+    .sig-fair{color:var(--amber)}
+    .sig-weak{color:var(--red)}
+    .sectionCard{border:1px solid var(--line);border-radius:var(--radius-xl);background:var(--panel);padding:18px 20px;max-width:920px;margin-bottom:14px}
+    .sectionHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px}
+    .sectionHead h3{margin:0}
+    .savedList{display:flex;flex-direction:column;gap:4px}
+    .savedItem{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r-md);border:1px solid transparent;background:var(--bg)}
+    .savedItem.connected{border-color:rgba(52,211,153,.28);background:rgba(52,211,153,.10)}
+    .savedPriority{font-size:.75rem;color:var(--muted-2);width:18px;text-align:center;flex-shrink:0}
+    .savedDot{width:8px;height:8px;border-radius:50%;background:transparent;flex-shrink:0}
+    .savedDot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+    .savedDot.dim{background:var(--surface-control-hover)}
+    .savedSsid{flex:1;font-size:.93rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .savedSsid.connected{color:var(--green)}
+    .savedBadge{font-size:.72rem;color:var(--green);font-weight:700;white-space:nowrap;margin-right:4px}
+    .savedBadge.dim{color:var(--muted-2)}
+    .noSaved{color:var(--muted);font-size:.9rem;padding:12px 0;text-align:center}
+    .btnRow{display:flex;align-items:center;gap:4px;flex-shrink:0;margin-left:auto}
+    .iconBtn{border:1px solid var(--surface-control);border-radius:var(--r-sm);padding:4px 7px;background:var(--panel-2);color:var(--muted);font-size:.82rem;cursor:pointer;display:inline-flex;align-items:center;gap:3px;transition:background .12s,color .12s;line-height:1}
+    .iconBtn:hover{background:var(--surface-raised);color:var(--text);border-color:var(--surface-control-hover)}
+    .iconBtn:disabled{opacity:.3;cursor:default}
+    .iconBtn.danger:hover{background:rgba(248,113,113,.14);border-color:rgba(248,113,113,.35);color:var(--red)}
+    .iconBtn.primary{border-color:rgba(52,211,153,.28);color:var(--green);background:rgba(52,211,153,.10)}
+    .iconBtn.primary:hover{background:rgba(52,211,153,.16);border-color:rgba(52,211,153,.42)}
+    .scanBtn{border:1px solid var(--surface-control-hover);border-radius:8px;padding:7px 13px;background:var(--surface-raised);color:var(--text);font-size:.88rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:background .15s}
+    .scanBtn:hover{border-color:var(--muted-2)}
+    .scanBtn:disabled{opacity:.5;cursor:default}
+    .scanBtn svg{width:15px;height:15px;fill:currentColor;flex-shrink:0}
+    .connectCard{border:1px solid var(--line);border-radius:var(--radius-xl);background:var(--panel);padding:18px 20px;max-width:920px;margin-bottom:14px}
+    .connectHead h3{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+    .networkList{display:flex;flex-direction:column;gap:3px;margin-bottom:4px}
+    .networkItem{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--r-md);cursor:pointer;border:1px solid transparent;transition:background .1s}
+    .networkItem:hover{background:var(--panel-2)}
+    .networkItem.selected{background:rgba(52,211,153,.10);border-color:rgba(52,211,153,.28)}
+    .networkItem.selected .netName{color:var(--green)}
+    .netLock{font-size:.78rem;color:var(--muted-2);width:14px;flex-shrink:0;text-align:center}
+    .netName{flex:1;font-size:.95rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .netSavedBadge{font-size:.72rem;color:var(--muted-2);white-space:nowrap;margin-right:2px}
+    .netDbm{font-size:.78rem;color:var(--muted-2);white-space:nowrap;min-width:56px;text-align:right}
+    .noNetworks{color:var(--muted);font-size:.9rem;padding:16px 0;text-align:center}
+    .connectForm{border-top:1px solid var(--line);padding-top:14px;margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .connectFormLabel{color:var(--muted);font-size:.88rem;white-space:nowrap;min-width:fit-content}
+    .pwInput{flex:1;min-width:160px;border:1px solid var(--surface-control);border-radius:8px;padding:8px 12px;background:var(--panel-2);color:var(--text);font-size:.93rem}
+    .pwInput:focus{outline:none;border-color:var(--muted-2)}
+    .joinBtn{border:0;border-radius:8px;padding:8px 18px;background:rgba(52,211,153,.28);color:var(--text);font-size:.93rem;cursor:pointer;font-weight:600;white-space:nowrap;transition:background .15s}
+    .joinBtn:hover{background:rgba(52,211,153,.42)}
+    .joinBtn:disabled{opacity:.5;cursor:default}
+    .deleteButton{border:1px solid rgba(248,113,113,.32);border-radius:8px;padding:8px 18px;background:rgba(248,113,113,.10);color:var(--red);font-size:.93rem;cursor:pointer;font-weight:600;white-space:nowrap;transition:background .15s}
+    .deleteButton:hover{background:rgba(248,113,113,.18);border-color:rgba(248,113,113,.45)}
+    .secondary{border:1px solid var(--surface-control);border-radius:8px;padding:8px 18px;background:var(--panel-2);color:var(--muted);font-size:.93rem;cursor:pointer}
+    .actionStatus{margin-top:10px;font-size:.86rem;color:var(--muted);min-height:1.2em}
+    .actionStatus.ok{color:var(--green)}
+    .actionStatus.err{color:var(--red)}
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;align-items:center;justify-content:center}
+    .overlay.open{display:flex}
+    .modal{width:min(560px,96vw);background:var(--surface-raised);border:1px solid var(--line);border-radius:var(--radius-xl);box-shadow:0 18px 60px rgba(0,0,0,.5)}
+    .modalHead{padding:20px 22px 0}
+    .modalHead h2{font-size:1.15rem;font-weight:760;margin:0 0 4px}
+    .modalHead .muted{font-size:.85rem;color:var(--muted)}
+    .modalBody{padding:16px 22px}
+    .modalActions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:0 22px 20px}
+  </style>
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="ic-home-outline" viewBox="0 0 24 24"><path d="M12 5.69L17 10.19V18H15V12H9V18H7V10.19L12 5.69M12 3L2 12H5V20H11V14H13V20H19V12H22"/></symbol>
+  </svg>
+  <nav class="pageToolbar" aria-label="Main navigation">
+    <div class="brandBlock">
+      <div>
+        <div class="brandName"><span class="brandLaunch">Launch</span><span class="brandControl">Control</span></div>
+        <div class="brandSub">RV-C Tools — Network Setup</div>
+      </div>
+    </div>
+    <div class="navLinks">
+      <a class="navMenuBtn" href="/" title="Back to RV-C Tools" aria-label="Back to RV-C Tools">
+        <svg viewBox="0 0 24 24"><use href="#ic-home-outline"/></svg>
+      </a>
+    </div>
+  </nav>
+
+  <div class="pageSection">Network</div>
+
+  <!-- Status cards -->
+  <div class="statusGrid">
+    <div class="statusCard">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
+        <h3 style="margin:0">Hotspot</h3>
+        <button class="scanBtn" id="apPwOpenBtn" onclick="openApPasswordModal()">Set Password</button>
+      </div>
+      <div id="apRows">
+        <div class="statusRow"><span class="statusLabel">Loading…</span></div>
+      </div>
+    </div>
+    <div class="statusCard">
+      <h3>Wi-Fi Connection</h3>
+      <div id="staRows">
+        <div class="statusRow"><span class="statusLabel">Loading…</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Saved networks (priority order; the connect card appears after a scan) -->
+  <div class="sectionCard">
+    <div class="sectionHead">
+      <h3>Saved Wi-Fi Networks</h3>
+      <div style="display:flex;align-items:center;gap:12px;margin-left:auto">
+        <span id="savedHint" style="font-size:.8rem;color:var(--muted)">Priority order — highest first</span>
+        <button class="scanBtn" id="scanBtn" onclick="scanWifi()">
+          <svg viewBox="0 0 24 24"><path d="M1 9l2 2c5.52-5.52 14.48-5.52 20 0l2-2C19.93 3.46 12.37 2 7 4.93 4.2 6.36 2.11 7.97 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4 2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+          Scan Wi-Fi
+        </button>
+      </div>
+    </div>
+    <div id="savedList" class="savedList">
+      <div class="noSaved">No saved networks yet. Press <strong>Scan Wi-Fi</strong> to find one.</div>
+    </div>
+    <div id="savedStatus" class="actionStatus"></div>
+  </div>
+
+  <!-- Scan / connect — hidden until Scan Wi-Fi is pressed. -->
+  <div class="connectCard" id="connectCard" style="display:none">
+    <div class="connectHead">
+      <h3>Connect to Network</h3>
+    </div>
+
+    <div id="networkList" class="networkList">
+      <div class="noNetworks">Scanning for nearby networks…</div>
+    </div>
+
+    <div id="connectForm" class="connectForm" style="display:none">
+      <span class="connectFormLabel" id="connectingTo">Password</span>
+      <input id="wifiPassword" class="pwInput" type="text" placeholder="Leave blank for open network" autocomplete="off">
+      <button class="joinBtn" id="joinBtn" onclick="connectWifi()">Save &amp; Connect</button>
+    </div>
+
+    <div id="actionStatus" class="actionStatus"></div>
+  </div>
+
+  <!-- Hotspot password modal -->
+  <div id="apPwOverlay" class="overlay">
+    <div class="modal" style="max-width:480px">
+      <div class="modalHead">
+        <h2>Hotspot Password</h2>
+        <div class="muted"><span id="apPwPill" class="savedBadge dim">Loading…</span></div>
+      </div>
+      <div id="apPwForm">
+      <div class="modalBody">
+        <p style="font-size:.9rem;color:var(--muted);margin-top:0">
+          A password on the tool's own network stops anyone nearby from
+          joining it.
+        </p>
+        <label style="display:flex;flex-direction:column;gap:5px;font-size:.85rem;color:var(--muted)">Wi-Fi password
+          <input id="apPassword" class="pwInput" type="text" autocomplete="off"
+                 placeholder="8 or more characters">
+        </label>
+        <p style="font-size:.78rem;color:var(--muted-2);margin-top:12px;margin-bottom:0">
+          ⚠ Saving restarts the tool's Wi-Fi, so anything connected to it —
+          maybe the device you're using — drops and has to rejoin with the new
+          password.
+          <br><b>Forgot it?</b> Reach this page over the Wi-Fi network the tool
+          is joined to (the STA side) and remove the password here — or erase
+          the board's NVS over its USB port.
+        </p>
+        <div id="apPwStatus" class="actionStatus"></div>
+      </div>
+      <div class="modalActions">
+        <button class="joinBtn" id="apPwSaveBtn" onclick="saveApPassword()">Save</button>
+        <button class="deleteButton" id="apPwClearBtn" onclick="clearApPassword()">Remove Password</button>
+        <button class="secondary" onclick="closeApPasswordModal()">Cancel</button>
+      </div>
+      </div>
+      <!-- Shown after a successful save/remove INSTEAD of a toast: the save
+           restarts the Wi-Fi, so this state is pure HTML — it needs no
+           further device contact to keep telling you what to do next. -->
+      <div id="apPwDone" style="display:none">
+        <div class="modalBody">
+          <p id="apPwDoneMsg" style="font-size:.95rem;color:var(--text);margin-top:0"></p>
+        </div>
+        <div class="modalActions">
+          <button class="joinBtn" onclick="closeApPasswordModal()">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function(c) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+      });
+    }
+
+    function sigLevel(rssi) {
+      if (rssi >= -55) return 4;
+      if (rssi >= -65) return 3;
+      if (rssi >= -75) return 2;
+      return 1;
+    }
+    function sigColor(rssi) {
+      if (rssi >= -55) return 'var(--green)';
+      if (rssi >= -65) return 'var(--lime)';
+      if (rssi >= -75) return 'var(--amber)';
+      return 'var(--red)';
+    }
+    function sigClass(rssi) {
+      if (rssi >= -55) return 'sig-excellent';
+      if (rssi >= -65) return 'sig-good';
+      if (rssi >= -75) return 'sig-fair';
+      return 'sig-weak';
+    }
+    function sigLabel(rssi) {
+      if (rssi >= -55) return 'Excellent';
+      if (rssi >= -65) return 'Good';
+      if (rssi >= -75) return 'Fair';
+      return 'Weak';
+    }
+
+    function barsHtml(rssi, large) {
+      var level = sigLevel(rssi);
+      var color = sigColor(rssi);
+      var w = large ? 6 : 5, gap = large ? 3 : 2;
+      var hs = large ? [5,9,14,20] : [4,7,11,16];
+      var H = large ? 20 : 16, W = w * 4 + gap * 3;
+      var s = '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" style="display:inline-block;vertical-align:middle;flex-shrink:0">';
+      for (var i = 0; i < 4; i++) {
+        var h = hs[i], x = i*(w+gap), y = H-h;
+        // style="fill:..." rather than a fill attribute: var() tokens resolve
+        // everywhere in the inline-style form (same note as the hub's).
+        s += '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="1.5" style="fill:'+(i<level?color:'var(--surface-control)')+'"/>';
+      }
+      return s + '</svg>';
+    }
+
+    async function apiGet(path) {
+      var res = await fetch(path, {cache:'no-store'});
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }
+
+    async function postJson(path, body) {
+      var res = await fetch(path, {method:'POST', cache:'no-store',
+        headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+      var data = await res.json().catch(function(){ return null; });
+      if (!res.ok || !data || !data.ok) throw new Error((data && data.error) || ('HTTP ' + res.status));
+      return data;
+    }
+
+    function setStatus(id, cls, text) {
+      var el = document.getElementById(id);
+      el.className = 'actionStatus' + (cls ? ' '+cls : '');
+      el.textContent = text;
+    }
+
+    /* ── Hotspot password ── */
+    // Last /api/auth/status payload — renderAp() reads it for the Security
+    // row, saveApPassword() reads .on_ap to warn accurately.
+    var authState = null;
+    var lastApSsid = '';
+
+    async function loadAuthStatus() {
+      try {
+        var d = await apiGet('/api/auth/status');
+        authState = d;
+        var secEl = document.getElementById('apSecurityVal');
+        if (secEl) secEl.textContent = apSecurityText();
+        var apPill = document.getElementById('apPwPill');
+        if (apPill) {
+          if (d.ap_has_password) {
+            apPill.className = 'savedBadge';
+            apPill.textContent = 'Password set';
+          } else {
+            apPill.className = 'savedBadge dim';
+            apPill.textContent = 'Open — anyone in range can join';
+          }
+        }
+        document.getElementById('apPwClearBtn').style.display = d.ap_has_password ? '' : 'none';
+        var apBtn = document.getElementById('apPwOpenBtn');
+        if (apBtn) apBtn.textContent = d.ap_has_password ? 'Change Password' : 'Set Password';
+      } catch (e) { /* status card shows Unavailable via refreshStatus */ }
+    }
+
+    function openApPasswordModal() {
+      document.getElementById('apPwForm').style.display = '';
+      document.getElementById('apPwDone').style.display = 'none';
+      document.getElementById('apPassword').value = '';
+      setStatus('apPwStatus', '', '');
+      document.getElementById('apPwOverlay').classList.add('open');
+      loadAuthStatus();
+      document.getElementById('apPassword').focus();
+    }
+    function closeApPasswordModal() {
+      document.getElementById('apPwOverlay').classList.remove('open');
+    }
+
+    function apPwShowDone(msgHtml) {
+      document.getElementById('apPwDoneMsg').innerHTML = msgHtml;
+      document.getElementById('apPwForm').style.display = 'none';
+      document.getElementById('apPwDone').style.display = '';
+    }
+
+    async function saveApPassword() {
+      var el = document.getElementById('apPassword');
+      var pw = el.value;
+      if (pw.length < 8) { setStatus('apPwStatus', 'err', '✗ Wi-Fi passwords need at least 8 characters'); return; }
+      var msg = (authState && authState.on_ap)
+        ? "You are connected through the tool's own Wi-Fi. Saving disconnects this device, and you must rejoin with the new password. Continue?"
+        : "Save and restart the tool's Wi-Fi? Anything connected to it will drop and must rejoin with the new password.";
+      if (!confirm(msg)) return;
+      try {
+        await postJson('/api/auth/ap_password', {password: pw});
+        el.value = '';
+        var ssid = lastApSsid ? '<b>' + esc(lastApSsid) + '</b>' : "the tool's Wi-Fi";
+        apPwShowDone(
+          "Password saved. The tool's Wi-Fi is restarting now." +
+          '<br><br>If this device was connected to it: open your Wi-Fi settings, ' +
+          'rejoin ' + ssid + ', and enter the new password. ' +
+          'Then come back to this page.');
+        loadAuthStatus();
+      } catch (e) { setStatus('apPwStatus', 'err', '✗ ' + e.message); }
+    }
+
+    async function clearApPassword() {
+      if (!confirm("Remove the password? The tool's Wi-Fi becomes open to anyone in range.")) return;
+      try {
+        await postJson('/api/auth/ap_password', {password: ''});
+        var ssid = lastApSsid ? '<b>' + esc(lastApSsid) + '</b>' : "the tool's Wi-Fi";
+        apPwShowDone(
+          "Password removed — the tool's Wi-Fi is open again and is restarting now." +
+          '<br><br>If this device was connected to it, rejoin ' + ssid +
+          ' — no password is needed.');
+        loadAuthStatus();
+      } catch (e) { setStatus('apPwStatus', 'err', '✗ ' + e.message); }
+    }
+
+    /* ── Status cards ── */
+    async function refreshStatus() {
+      try {
+        var d = await apiGet('/api/wifi/status');
+        renderAp(d);
+        renderSta(d);
+      } catch(e) {
+        document.getElementById('apRows').innerHTML  = '<div class="statusRow"><span class="statusLabel">Unavailable</span></div>';
+        document.getElementById('staRows').innerHTML = '<div class="statusRow"><span class="statusLabel">Unavailable</span></div>';
+      }
+    }
+
+    function row(label, valueHtml) {
+      return '<div class="statusRow"><span class="statusLabel">'+esc(label)+'</span><span class="statusValue">'+valueHtml+'</span></div>';
+    }
+
+    function apSecurityText() {
+      if (!authState) return '—';
+      return authState.ap_has_password ? 'Password set' : 'Open — anyone in range can join';
+    }
+
+    function renderAp(d) {
+      lastApSsid = d.ap_ssid || '';
+      document.getElementById('apRows').innerHTML =
+        row('Network name', esc(d.ap_ssid || '—')) +
+        row('Security', '<span id="apSecurityVal">' + esc(apSecurityText()) + '</span>') +
+        row('IP',      esc(d.ap_ip      || '—')) +
+        row('Channel', esc(d.ap_channel !== undefined ? d.ap_channel : '—')) +
+        row('Clients', esc(d.ap_clients !== undefined ? d.ap_clients : '—'));
+    }
+
+    function renderSta(d) {
+      var el = document.getElementById('staRows');
+      if (!d.sta_connected && !d.sta_got_ip) {
+        el.innerHTML =
+          row('Network name', '<span class="dim">Not connected</span>') +
+          row('IP',     '<span class="dim">—</span>') +
+          row('Signal', '<span class="dim">—</span>');
+        return;
+      }
+      var rssi = d.sta_rssi != null ? Number(d.sta_rssi) : null;
+      var sigHtml = rssi
+        ? '<span class="sigWrap">'+barsHtml(rssi,true)+
+          '&ensp;<span class="sigDbm">'+rssi+' dBm</span>'+
+          '&ensp;<span class="sigQuality '+sigClass(rssi)+'">'+sigLabel(rssi)+'</span></span>'
+        : '<span class="dim">—</span>';
+      el.innerHTML =
+        row('Network name', esc(d.sta_ssid || '—')) +
+        row('IP',     esc(d.sta_ip   || (d.sta_connected ? 'Obtaining…' : '—'))) +
+        row('Signal', sigHtml);
+    }
+
+    /* ── Saved networks ── */
+    var savedNetworks = [];
+    var scannedSsids = new Set();
+    var selectedSsid = null;
+    var selectedOpen = false;
+
+    async function refreshSavedNetworks() {
+      try {
+        var data = await apiGet('/api/wifi/networks');
+        savedNetworks = data.networks || [];
+        renderSavedNetworks();
+      } catch(e) { /* silent */ }
+    }
+
+    function renderSavedNetworks() {
+      var el = document.getElementById('savedList');
+      if (!savedNetworks.length) {
+        el.innerHTML = '<div class="noSaved">No saved networks yet. Press <strong>Scan Wi-Fi</strong> to find one.</div>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < savedNetworks.length; i++) {
+        var n = savedNetworks[i];
+        var connectedCls = n.connected ? ' connected' : '';
+        var dotCls  = n.connected ? 'on' : (n.visible ? 'dim' : '');
+        var ssidCls = n.connected ? ' connected' : '';
+        var badge   = n.connected
+          ? '<span class="savedBadge">Connected</span>'
+          : (n.visible ? '<span class="savedBadge dim">In range</span>' : '');
+        var canUp   = i > 0;
+        var canDown = i < savedNetworks.length - 1;
+        var connectBtn = (!n.connected && n.visible)
+          ? '<button class="iconBtn primary" data-ssid="'+esc(n.ssid)+'" onclick="selectConnect(this.dataset.ssid)">Connect</button>'
+          : '';
+        html += '<div class="savedItem'+connectedCls+'">' +
+          '<span class="savedPriority">'+(i+1)+'</span>' +
+          '<span class="savedDot '+dotCls+'"></span>' +
+          '<span class="savedSsid'+ssidCls+'">'+esc(n.ssid)+'</span>' +
+          badge +
+          '<div class="btnRow">' +
+            '<button class="iconBtn" '+(canUp?'':'disabled')+' data-ssid="'+esc(n.ssid)+'" onclick="moveNetwork(this.dataset.ssid,-1)">▲</button>' +
+            '<button class="iconBtn" '+(canDown?'':'disabled')+' data-ssid="'+esc(n.ssid)+'" onclick="moveNetwork(this.dataset.ssid,1)">▼</button>' +
+            connectBtn +
+            '<button class="iconBtn danger" data-ssid="'+esc(n.ssid)+'" onclick="forgetNetwork(this.dataset.ssid)">Forget</button>' +
+          '</div>' +
+        '</div>';
+      }
+      el.innerHTML = html;
+    }
+
+    async function moveNetwork(ssid, delta) {
+      var dir = delta < 0 ? 'up' : 'down';
+      setStatus('savedStatus', '', '');
+      try {
+        await apiGet('/api/wifi/networks/move?ssid='+encodeURIComponent(ssid)+'&dir='+dir);
+        await refreshSavedNetworks();
+      } catch(e) {
+        setStatus('savedStatus', 'err', 'Move failed: ' + e.message);
+      }
+    }
+
+    async function forgetNetwork(ssid) {
+      if (!confirm('Remove "'+ssid+'" from saved networks?')) return;
+      setStatus('savedStatus', '', '');
+      try {
+        await apiGet('/api/wifi/networks/forget?ssid='+encodeURIComponent(ssid));
+        await refreshSavedNetworks();
+        if (scannedSsids.size) renderScanList(lastScanAps);
+        setStatus('savedStatus', 'ok', '✓ Removed "'+ssid+'"');
+        setTimeout(function(){ setStatus('savedStatus','',''); }, 3000);
+      } catch(e) {
+        setStatus('savedStatus', 'err', 'Forget failed: ' + e.message);
+      }
+    }
+
+    async function selectConnect(ssid) {
+      setStatus('savedStatus', '', 'Connecting to '+ssid+'…');
+      try {
+        var data = await apiGet('/api/wifi/networks/select?ssid='+encodeURIComponent(ssid));
+        if (!data.ok) throw new Error(data.status || 'failed');
+        setStatus('savedStatus', 'ok', '✓ Connecting to '+ssid+'…');
+        setTimeout(function(){ refreshStatus(); refreshSavedNetworks(); }, 2500);
+        setTimeout(function(){ refreshStatus(); refreshSavedNetworks(); }, 6000);
+        setTimeout(function(){ setStatus('savedStatus','',''); }, 10000);
+      } catch(e) {
+        var msg = (e.message.indexOf('not found in last scan') >= 0 || e.message.indexOf('400') >= 0)
+          ? ssid + ' is not in range — scan first'
+          : 'Connect failed: ' + e.message;
+        setStatus('savedStatus', 'err', '✗ ' + msg);
+      }
+    }
+
+    /* ── Scan / connect ── */
+    var lastScanAps = [];
+
+    function renderScanList(aps) {
+      lastScanAps = aps;
+      var list = document.getElementById('networkList');
+      if (!aps.length) {
+        list.innerHTML = '<div class="noNetworks">No networks found. Try scanning again.</div>';
+        return;
+      }
+      var savedSsids = new Set(savedNetworks.map(function(n){ return n.ssid; }));
+      var html = '';
+      for (var i = 0; i < aps.length; i++) {
+        var ap = aps[i];
+        var open = !ap.auth_mode || ap.auth_mode === 'OPEN';
+        var isSaved = savedSsids.has(ap.ssid);
+        var sel  = ap.ssid === selectedSsid ? ' selected' : '';
+        var savedBadge = isSaved ? '<span class="netSavedBadge">saved</span>' : '';
+        html += '<div class="networkItem'+sel+'" onclick="selectNetworkEl(this)" data-ssid="'+esc(ap.ssid)+'" data-open="'+(open?'1':'0')+'">' +
+          '<span class="netLock">'+(open?'':'🔒')+'</span>' +
+          '<span class="netName">'+esc(ap.ssid)+'</span>' +
+          savedBadge +
+          barsHtml(ap.rssi, false) +
+          '<span class="netDbm">'+ap.rssi+' dBm</span>' +
+        '</div>';
+      }
+      list.innerHTML = html;
+    }
+
+    async function scanWifi() {
+      var btn = document.getElementById('scanBtn');
+      btn.disabled = true;
+      btn.lastChild.textContent = ' Scanning…';
+      setStatus('actionStatus', '', '');
+      document.getElementById('connectCard').style.display = '';
+      document.getElementById('networkList').innerHTML = '<div class="noNetworks">Scanning for nearby networks…</div>';
+      document.getElementById('connectForm').style.display = 'none';
+      scannedSsids = new Set();
+      try {
+        var data = await apiGet('/api/wifi/scan');
+        if (!data.ok) throw new Error(data.error || 'scan failed');
+        var aps = (data.aps || []).filter(function(ap){ return ap.ssid && ap.ssid.trim(); });
+        aps.sort(function(a,b){ return (b.rssi||-100)-(a.rssi||-100); });
+        aps.forEach(function(ap){ scannedSsids.add(ap.ssid); });
+        savedNetworks.forEach(function(n){ n.visible = scannedSsids.has(n.ssid); });
+        renderSavedNetworks();
+        renderScanList(aps);
+        refreshStatus();
+      } catch(e) {
+        document.getElementById('networkList').innerHTML = '<div class="noNetworks">Scan failed: '+esc(e.message)+'</div>';
+        setStatus('actionStatus', 'err', 'Scan error — check connection and try again.');
+      } finally {
+        btn.disabled = false;
+        btn.lastChild.textContent = ' Scan Wi-Fi';
+      }
+    }
+
+    function selectNetworkEl(el) {
+      selectNetwork(el.dataset.ssid, el.dataset.open === '1');
+    }
+
+    function selectNetwork(ssid, open) {
+      selectedSsid = ssid;
+      selectedOpen = open;
+      document.querySelectorAll('.networkItem').forEach(function(el) {
+        el.classList.toggle('selected', el.dataset.ssid === ssid);
+      });
+      var form  = document.getElementById('connectForm');
+      var label = document.getElementById('connectingTo');
+      var pw    = document.getElementById('wifiPassword');
+      label.textContent = ssid + (open ? ' (open network)' : '');
+      pw.placeholder    = open ? 'No password required' : 'Password';
+      pw.style.display  = open ? 'none' : '';
+      pw.value          = '';
+      form.style.display = 'flex';
+      setStatus('actionStatus', '', '');
+      if (!open) setTimeout(function(){ pw.focus(); }, 0);
+    }
+
+    async function connectWifi() {
+      if (!selectedSsid) return;
+      var pw   = selectedOpen ? '' : (document.getElementById('wifiPassword').value || '');
+      var btn  = document.getElementById('joinBtn');
+      btn.disabled = true;
+      setStatus('actionStatus', '', 'Saving and connecting to '+selectedSsid+'…');
+      try {
+        var url  = '/api/wifi/connect?ssid='+encodeURIComponent(selectedSsid)+'&password='+encodeURIComponent(pw);
+        var data = await apiGet(url);
+        if (!data.ok) throw new Error(data.status || 'connect failed');
+        setStatus('actionStatus', 'ok', '✓ Saved. Connecting to '+selectedSsid+'…');
+        setTimeout(function(){ refreshSavedNetworks(); refreshStatus(); }, 1500);
+        setTimeout(function(){ refreshSavedNetworks(); refreshStatus(); }, 5000);
+        document.getElementById('connectForm').style.display = 'none';
+        selectedSsid = null;
+        document.querySelectorAll('.networkItem').forEach(function(el){ el.classList.remove('selected'); });
+      } catch(e) {
+        setStatus('actionStatus', 'err', '✗ Failed: '+e.message);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    refreshStatus();
+    refreshSavedNetworks();
+    loadAuthStatus();
+    setInterval(function(){ refreshStatus(); refreshSavedNetworks(); }, 5000);
+  </script>
+</body>
+</html>

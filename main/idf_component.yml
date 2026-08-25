@@ -1,0 +1,7 @@
+## IDF Component Manager Manifest File
+dependencies:
+  idf:
+    version: '>=5.0.0'
+  # mDNS lives in the component registry since IDF 5.x — NOT a core REQUIRES
+  # target (same trap hub_core documents).
+  espressif/mdns: ^1.0.0

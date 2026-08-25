@@ -1,0 +1,14 @@
+# Stand-alone RV-C Tools — Copperhill ESP32-WROOM-32, 4 MB flash.
+#
+# Single factory app, no OTA: this is a bench diagnostic tool that flashes
+# over its USB port; two OTA slots would halve the app budget for a feature
+# with no use case here. SPIFFS holds the web assets (~150 KB of content in
+# ~1.9 MB — never close to full).
+#
+# nvs is 0x6000 (vs the hub's 0x4000): it holds the saved Wi-Fi network list
+# (~800 B blob), the AP password, and the Wi-Fi stack's own storage — roomy.
+# Name,    Type, SubType, Offset,   Size,     Flags
+nvs,       data, nvs,     0x9000,   0x6000,
+phy_init,  data, phy,     0xf000,   0x1000,
+factory,   app,  factory, 0x10000,  0x200000,
+storage,   data, spiffs,  0x210000, 0x1F0000,

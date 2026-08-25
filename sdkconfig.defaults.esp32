@@ -1,0 +1,2 @@
+# Copperhill ESP32-WROOM-32 board facts.
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
