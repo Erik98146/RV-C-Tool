@@ -16,6 +16,7 @@ https://copperhilltech.com/esp32-wifi-bluetooth-classic-ble-can-bus-module/
 - Highlights newly discovered DGN's (in orange)
 - Hosts a WiFi access point, and can join an existing wifi network for lan access
 - Can send commands in the same byte format as the official RV-C specification
+- Logging tool with ability to save to .csv file
 - Powered by RV-C Bus, 12v, or USB-C
 
 ## Installing
